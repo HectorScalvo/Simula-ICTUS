@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simula‑ICTUS · Simulador Código ICTUS - SUMMA112</title>
+<!-- Tailwind CSS desde CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  /* Fondo degradado animado pastel */
+  body{
+    background: linear-gradient(135deg,#d0e8ff,#f7d7ff,#ffe7d0);
+    background-size:400% 400%;
+    animation:fondo 18s ease infinite;
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+  }
+  @keyframes fondo{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+  /* Cronómetro enorme */
+  #tiempo{ font-size:7rem; font-weight:900; text-shadow:3px 3px 10px rgba(0,0,0,0.2) }
+  .flash{ animation:flashEffect .4s ease-in-out }
+  @keyframes flashEffect{ 0%{ background-color:rgba(255,0,0,.5) } 100%{ background-color:transparent } }
+  .finalizado{ color:#11a860!important; animation:pulse 1.8s ease-in-out infinite }
+  @keyframes pulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.05) } 100%{ transform:scale(1) } }
+
+  /* Botón ambulancia (SVG más realista) */
+  .amb-btn svg{ width:170px; height:110px }
+  .amb-btn:hover{ transform: scale(1.04) }
+  .light-blink{ animation: blink 1s infinite }
+  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* Cerebro “derretido” (hero) */
+  .brain svg{ width:150px; height:150px; filter: drop-shadow(0 10px 16px rgba(0,0,0,.15)) }
+  .drip{ animation: drip 2.8s ease-in-out infinite }
+  @keyframes drip{
+    0%{ transform: translateY(0px) }
+    50%{ transform: translateY(6px) }
+    100%{ transform: translateY(0px) }
+  }
+
+  /* Emojis grandes */
+  .emoji-btn{ font-size:4.2rem; line-height:1; cursor:pointer; transition: transform .2s, filter .2s; user-select:none }
+  .emoji-btn:hover{ transform:scale(1.08); filter:drop-shadow(0 6px 10px rgba(0,0,0,.15)) }
+  .emoji-disabled{ opacity:.45; filter:grayscale(.2); pointer-events:none }
+  .tag{ display:inline-block; padding:.15rem .5rem; border-radius:.5rem; font-size:.8rem; margin-right:.3rem }
+
+  /* Overlays */
+  #gameOverOverlay, #successOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.82);
+    display:none; align-items:center; justify-content:center; z-index:9999;
+  }
+  .go-text{
+    color:#ff4d4f; font-size:min(18vw,150px); font-weight:900; text-align:center; line-height:1.1;
+    text-shadow:0 0 30px rgba(255,77,79,.6);
+  }
+  .go-sub{ color:#fff; font-size:min(5vw,28px); margin-top:10px }
+  .go-actions{ margin-top:20px; display:flex; gap:12px; justify-content:center }
+
+  .ok-text{
+    color:#22c55e; font-size:min(18vw,150px); font-weight:900; text-align:center; line-height:1.1;
+    text-shadow:0 0 30px rgba(34,197,94,.6);
+  }
+  .ok-sub{ color:#fff; font-size:min(5vw,28px); margin-top:10px }
+</style>
+</head>
+
+<body class="p-6">
+  <div class="max-w-6xl mx-auto bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-8 border border-white/40">
+
+    <!-- Presentación / Simula‑ICTUS (nuevo estilo) -->
+    <div class="rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-fuchsia-50 to-sky-50 border border-sky-200 shadow">
+      <div class="flex items-center gap-5 flex-wrap">
+        <!-- Cerebro derretido (SVG) -->
+        <div class="brain">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#ff99b3"/>
+                <stop offset="100%" stop-color="#ff6f91"/>
+              </linearGradient>
+            </defs>
+            <!-- Masa cerebral -->
+            <ellipse cx="100" cy="85" rx="70" ry="55" fill="url(#g1)" stroke="#c13b63" stroke-width="3"/>
+            <!-- Giros -->
+            <path d="M50,90 C70,70 130,70 150,90" fill="none" stroke="#c13b63" stroke-width="3"/>
+            <path d="M60,105 C80,85 120,85 140,105" fill="none" stroke="#c13b63" stroke-width="3"/>
+            <path d="M70,75 C85,65 115,65 130,75" fill="none" stroke="#c13b63" stroke-width="3"/>
+            <!-- Goteos -->
+            <path class="drip" d="M85,115 c5,20 -5,25 -5,40 c0,5 8,5 8,0 c0,-12 8,-18 5,-35z" fill="#ff6f91" opacity="0.9"/>
+            <path class="drip" style="animation-delay:.6s" d="M120,110 c6,18 -6,24 -6,36 c0,5 8,5 8,0 c0,-9 8,-15 5,-30z" fill="#ff6f91" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-5xl font-extrabold text-blue-900 tracking-tight">Simula‑ICTUS</h1>
+          <p class="mt-3 text-lg text-gray-800">
+            <strong>Bienvenido/a a Simula‑ICTUS.</strong> Tu misión es <strong>valorar y gestionar</strong> un posible caso de ictus en el <strong>menor tiempo posible</strong>.
+            Explora al paciente, revisa las constantes, los antecedentes (situación basal) y la <em>hora de inicio</em>. Después, <strong>calcula la puntuación total de la escala MADRID DIRECT</strong>
+            (sin ver los puntos por ítem) e indica si <strong>cumple</strong> o <strong>no cumple</strong> criterios de Código Ictus. Si aciertas, ¡habrás conseguido el objetivo!
+            Recuerda: <em>EL TIEMPO ES CEREBRO</em> ⏱️
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aviso 112 -->
+    <div class="bg-blue-50 border border-blue-200 p-5 rounded-xl shadow">
+      <h2 class="font-bold text-2xl text-blue-700 mb-2">Aviso entrante del 112</h2>
+      <p id="textoCaso" class="text-blue-900 text-lg"></p>
+    </div>
+
+    <!-- Botón de inicio: Ambulancia SVG estilo SUMMA112 -->
+    <div class="flex flex-col items-center">
+      <button id="btnMovilizar" class="amb-btn transition p-3 rounded-xl bg-white/70 border hover:shadow-lg" aria-label="Iniciar simulación" title="Iniciar simulación">
+        <!-- Dibujo estilizado: carrocería amarilla, cuadros verdes, franja roja, 112, SUMMA 112, V.I.R. -->
+        <svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Sombra -->
+          <ellipse cx="190" cy="160" rx="150" ry="12" fill="#000" opacity="0.10"/>
+          <!-- Carrocería principal -->
+          <path d="M50 120 L50 80 Q55 60 75 60 L240 60 Q255 60 265 68 L310 100 Q320 108 320 120 L320 120 Z"
+                fill="#f5ec3b" stroke="#1f2937" stroke-width="3"/>
+          <!-- Cabina -->
+          <path d="M240 60 L290 60 Q305 60 315 70 L330 90 Q335 95 330 100 L320 110 L265 68 Q255 60 240 60 Z"
+                fill="#f5ec3b" stroke="#1f2937" stroke-width="3"/>
+          <!-- Ventana cabina -->
+          <path d="M265 66 L305 66 Q312 66 317 72 L327 86 L310 100 L275 72 Q269 66 265 66 Z"
+                fill="#9dd1ff" stroke="#1f2937" stroke-width="2"/>
+          <!-- Cuadros verdes (estrella lateral) -->
+          <rect x="65" y="98" width="200" height="14" fill="#2ea44f"/>
+          <rect x="65" y="84" width="18" height="14" fill="#2ea44f"/>
+          <rect x="101" y="84" width="18" height="14" fill="#2ea44f"/>
+          <rect x="137" y="84" width="18" height="14" fill="#2ea44f"/>
+          <rect x="173" y="84" width="18" height="14" fill="#2ea44f"/>
+          <!-- Franja roja -->
+          <rect x="65" y="116" width="250" height="10" fill="#e11d48"/>
+          <!-- Texto lateral -->
+          <text x="78" y="80" font-size="15" font-weight="700" fill="#1f2937">SUMMA 112</text>
+          <text x="78" y="96" font-size="12" font-weight="700" fill="#1f2937">V.I.R.</text>
+          <text x="210" y="80" font-size="16" font-weight="800" fill="#1f2937">112</text>
+          <!-- Ruedas -->
+          <circle cx="120" cy="135" r="19" fill="#111827"/>
+          <circle cx="120" cy="135" r="8" fill="#6b7280"/>
+          <circle cx="265" cy="135" r="19" fill="#111827"/>
+          <circle cx="265" cy="135" r="8" fill="#6b7280"/>
+          <!-- Luz superior -->
+          <rect x="250" y="52" width="16" height="8" rx="2" class="light-blink" fill="#3b82f6"/>
+        </svg>
+        <div class="mt-2 text-sm text-gray-700">Pulsa la ambulancia para iniciar</div>
+      </button>
+    </div>
+
+    <!-- Cronómetro -->
+    <div id="cronometro" class="hidden text-center pt-2">
+      <p id="tiempo" class="text-red-600">00:00</p>
+      <p class="text-xl font-semibold text-gray-700 mt-2 tracking-wide">EL TIEMPO ES CEREBRO ⏱️</p>
+    </div>
+
+    <!-- Panel de EMOJIS -->
+    <div id="emojiPanel" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+
+      <!-- Paciente / Clínica -->
+      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
+        <div class="flex items-start gap-4">
+          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑‍🦳</div>
+          <div class="flex-1">
+            <div class="text-lg font-bold text-gray-800">Paciente (Clínica)</div>
+            <div id="descClinica" class="text-gray-700 mt-2">
+              <em>Al pulsar, verás la <strong>sintomatología</strong> del paciente. La <strong>puntuación</strong> de Madrid Direct la debes <strong>calcular tú</strong> después, con los ítems.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monitor / Constantes -->
+      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
+        <div class="flex items-start gap-4">
+          <div id="btnConstantes" class="emoji-btn" title="Monitorización">📺</div>
+          <div class="flex-1">
+            <div class="text-lg font-bold text-gray-800">Monitorización (Constantes y ECG)</div>
+            <div id="descConstantes" class="text-gray-700 mt-2">
+              <em>Pulsa para ver TA, FC, SatO₂, Glucemia, Temperatura y ECG.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Libro / Antecedentes (Situación Basal: ABVD + Cognición) -->
+      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
+        <div class="flex items-start gap-4">
+          <div id="btnAntecedentes" class="emoji-btn" title="Antecedentes">📘</div>
+          <div class="flex-1">
+            <div class="text-lg font-bold text-gray-800">Antecedentes y situación basal</div>
+            <div id="descAntecedentes" class="text-gray-700 mt-2">
+              <em>Consulta comorbilidades y <strong>situación basal</strong> con foco en:
+              <strong>ABVD</strong> (si necesita ayuda) y <strong>Cognición</strong> (si hay deterioro o no).</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reloj / Hora de inicio -->
+      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
+        <div class="flex items-start gap-4">
+          <div id="btnHora" class="emoji-btn" title="Hora de inicio">⏰</div>
+          <div class="flex-1">
+            <div class="text-lg font-bold text-gray-800">Hora de inicio de síntomas</div>
+            <div id="descHora" class="text-gray-700 mt-2">
+              <em>Pulsa para conocer la hora de inicio/última vez visto bien.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div id="panelInfo" class="hidden space-y-3 bg-yellow-50/70 border border-yellow-300 p-5 rounded-xl shadow-inner"></div>
+
+    <!-- MADRID DIRECT: Ítems (sin mostrar puntuación) -->
+    <div id="madridDirectSection" class="hidden space-y-4">
+      <h3 class="font-bold text-2xl text-blue-800">Madrid Direct (ítems)</h3>
+      <!-- Brazo -->
+      <div class="bg-white/80 rounded-xl border p-4">
+        <div class="font-semibold mb-2">Miembro superior</div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button class="tag bg-gray-100 border" data-check="arm_msd">Vence gravedad en MSD</button>
+          <span id="arm_msd_res" class="text-sm"></span>
+          <button class="tag bg-gray-100 border" data-check="arm_msi">Vence gravedad en MSI</button>
+          <span id="arm_msi_res" class="text-sm"></span>
+        </div>
+      </div>
+      <!-- Pierna -->
+      <div class="bg-white/80 rounded-xl border p-4">
+        <div class="font-semibold mb-2">Miembro inferior</div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button class="tag bg-gray-100 border" data-check="leg_mid">Vence gravedad en MID</button>
+          <span id="leg_mid_res" class="text-sm"></span>
+          <button class="tag bg-gray-100 border" data-check="leg_mii">Vence gravedad en MII</button>
+          <span id="leg_mii_res" class="text-sm"></span>
+        </div>
+      </div>
+      <!-- Mirada -->
+      <div class="bg-white/80 rounded-xl border p-4">
+        <div class="font-semibold mb-2">Mirada</div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button class="tag bg-gray-100 border" data-check="gaze">¿Hay desviación de la mirada?</button>
+          <span id="gaze_res" class="text-sm"></span>
+        </div>
+      </div>
+      <!-- Órdenes / Reconocimiento -->
+      <div class="bg-white/80 rounded-xl border p-4">
+        <div class="font-semibold mb-2">Órdenes / Reconocimiento del déficit</div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <button class="tag bg-gray-100 border" data-check="obey">¿Obedece órdenes sencillas?</button>
+          <span id="obey_res" class="text-sm"></span>
+          <button class="tag bg-gray-100 border" data-check="recognize" id="btnRecognize">¿Reconoce el déficit?</button>
+          <span id="recognize_res" class="text-sm"></span>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Nota: si <strong>no obedece</strong>, el reconocimiento del déficit <em>no es valorable</em>.</p>
+      </div>
+
+      <!-- Validación por número (informativa) -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <label class="font-semibold text-xl">Introduce la <u>puntuación total</u> de MADRID DIRECT (sin ver la puntuación de cada ítem):</label>
+        <div class="mt-2 flex gap-2 items-center">
+          <input id="inputMadrid" type="number" class="border p-3 w-40 rounded-xl shadow text-lg" placeholder="número"/>
+          <button id="btnValidarMadrid" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl shadow font-bold">Validar puntuación</button>
+          <span id="msgMadrid" class="text-lg ml-2"></span>
+        </div>
+      </div>
+
+      <!-- DECISIÓN: Cumple / NO cumple -->
+      <div class="bg-white/80 border rounded-xl p-4">
+        <div class="font-bold text-lg mb-2">¿Crees que <span class="underline">cumple</span> criterios de Código Ictus?</div>
+        <div class="flex flex-wrap gap-3">
+          <button id="btnCumple" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold">✅ Cumple criterios</button>
+          <button id="btnNoCumple" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-semibold">❌ NO cumple criterios</button>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Selecciona una opción. Si aciertas, ¡CONSEGUIDO!; si no, GAME OVER.</p>
+      </div>
+    </div>
+
+    <!-- Botón: Gestionar Alerta hospitalaria -->
+    <button id="btnAlerta" class="hidden bg-purple-600 hover:bg-purple-700 text-white px-4 py-4 rounded-xl w-full text-xl font-bold shadow-xl">
+      Gestionar Alerta hospitalaria (+5:00)
+    </button>
+
+    <!-- Destino -->
+    <div id="destinoHospital" class="hidden bg-green-100 border border-green-300 p-5 rounded-xl shadow text-center">
+      <p id="textoDestino" class="font-semibold text-green-800 text-2xl"></p>
+      <p class="italic text-lg mt-1 text-green-700">Simulacro finalizado</p>
+    </div>
+
+    <!-- Créditos discretos -->
+    <div class="text-[11px] text-gray-500 text-right pt-2">
+      Simula‑ICTUS <span class="opacity-80">by Héctor Sales</span> · desarrollado con apoyo de <span class="opacity-80">M365 Copilot</span>
+    </div>
+  </div>
+
+  <!-- GAME OVER Overlay -->
+  <div id="gameOverOverlay" class="flex">
+    <div class="text-center">
+      <div class="go-text">GAME OVER</div>
+      <div class="go-sub" id="goMsg">Has fallado en la decisión.</div>
+      <div class="go-actions">
+        <button id="btnReiniciarGO" class="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold">🔄 Iniciar nuevo caso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS Overlay -->
+  <div id="successOverlay" class="flex">
+    <div class="text-center">
+      <div class="ok-text">¡CONSEGUIDO!</div>
+      <div class="ok-sub" id="okMsg">Tiempo total: 00:00</div>
+      <div class="go-actions">
+        <button id="btnReiniciarOK" class="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold">🔄 Iniciar nuevo caso</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ==========================
+   Estado general
+   ========================== */
+let segundos = 0;
+let intervalo = null;
+let accionesRealizadas = 0;
+let simulacroFinalizado = false;
+
+let currentCase = null;
+let correctMadrid = 0;
+
+let weakArmSide = null; // 'MSD' o 'MSI' si hay déficit de brazo
+let weakLegSide = null; // 'MID' o 'MII' si hay déficit de pierna
+
+/* ==========================
+   Casos aleatorios
+   (incluye NO‑Código por basal con hemiplejia completa coherente)
+   ========================== */
+const casos = [
+  {
+    tipo: "Compatible con Código Ictus",
+    aviso: (edad)=>`Paciente de ${edad} años con inicio brusco de síntomas neurológicos compatibles.`,
+    edad: 78,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> dificultad para articular el lenguaje, pérdida brusca de fuerza en un lado del cuerpo y la familia observa que fija la mirada hacia un lado.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> HTA, dislipemia; no anticoagulado.<br>
+      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 182/100 · FC 92 · SatO₂ 95% · Glu 118 mg/dL · Temp 36.7 °C<br>
+      <strong>ECG:</strong> Ritmo sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> ~35-40 min.`,
+    md: { arm:1, leg:1, gaze:1, noObey:1, recNo:0, pas:182 },
+    cumpleCodigo: true,
+    destino: "Unidad de ICTUS – Hospital Doce de Octubre"
+  },
+  {
+    tipo: "Mímico (hipoglucemia) – NO CÓDIGO",
+    aviso: (edad)=>`Paciente de ${edad} años con alteración neurológica aguda potencialmente reversible.`,
+    edad: 84,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> sudoración, confusión, inestabilidad para la marcha y mejoría parcial tras aporte de azúcar.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> DM2 con insulina; HTA controlada.<br>
+      <strong>Situación basal:</strong> ABVD: precisa ayuda parcial · Cognición: sin deterioro relevante.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 150/85 · FC 96 · SatO₂ 97% · <strong class="text-red-600">Glu 42 mg/dL</strong> · Temp 36.5 °C<br>
+      <strong>ECG:</strong> Sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> ~15 min.`,
+    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:150 },
+    cumpleCodigo: false,
+    destino: "NINGUNO"
+  },
+  {
+    tipo: "Inicio >24 h – NO CÓDIGO",
+    aviso: (edad)=>`Paciente de ${edad} años con síntomas neurológicos iniciados hace más de 24 horas.`,
+    edad: 73,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> torpeza leve de mano y habla pastosa de más de un día de evolución, sin otros cambios relevantes.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> Tabaquismo activo, dislipemia; no FA conocida.<br>
+      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 138/82 · FC 78 · SatO₂ 98% · Glu 104 mg/dL · Temp 36.6 °C<br>
+      <strong>ECG:</strong> Sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> 26 h.`,
+    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:138 },
+    cumpleCodigo: false,
+    destino: "NINGUNO"
+  },
+  {
+    tipo: "Compatible con Código Ictus",
+    aviso: (edad)=>`Paciente de ${edad} años con inicio súbito de síntomas neurológicos compatibles.`,
+    edad: 69,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> habla pastosa, sensación de inestabilidad y visión doble de inicio brusco.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> HTA, exfumador; no anticoagulado.<br>
+      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 168/94 · FC 84 · SatO₂ 96% · Glu 110 mg/dL · Temp 36.6 °C<br>
+      <strong>ECG:</strong> Sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> ~60 min.`,
+    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:168 },
+    cumpleCodigo: true,
+    destino: "Unidad de ICTUS – Hospital Gregorio Marañón"
+  },
+  {
+    tipo: "TIA resuelto – NO CÓDIGO",
+    aviso: (edad)=>`Paciente de ${edad} años con episodios transitorios compatibles, actualmente asintomático.`,
+    edad: 74,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> episodio breve previo de hormigueo y torpeza fina en una mano, resuelto en el momento de la valoración.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> HTA, FA paroxística sin anticoagulación actual.<br>
+      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 146/88 · FC 84 (irregular) · SatO₂ 98% · Glu 102 mg/dL · Temp 36.5 °C<br>
+      <strong>ECG:</strong> FA paroxística.
+    `,
+    hora: `<strong>Hora de inicio:</strong> 2 h; síntomas resueltos.`,
+    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:146 },
+    cumpleCodigo: false,
+    destino: "NINGUNO"
+  },
+  {
+    tipo: "Cefalea brusca intensa – Compatible",
+    aviso: (edad)=>`Paciente de ${edad} años con cefalea súbita intensa y síntomas vegetativos.`,
+    edad: 62,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> dolor de cabeza de inicio inmediato y muy intenso, con náuseas y rigidez de nuca.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> Fumador; HTA mal controlada.<br>
+      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 198/106 · FC 88 · SatO₂ 97% · Glu 108 mg/dL · Temp 36.8 °C<br>
+      <strong>ECG:</strong> Sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> 30 min.`,
+    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:198 },
+    cumpleCodigo: true,
+    destino: "Unidad de ICTUS – Hospital Clínico San Carlos"
+  },
+  {
+    /* NO‑CÓDIGO por situación basal, con clínica muy evidente.
+       Hemiplejia completa + afasia + desviación fija de la mirada.
+       Coherencia lateral MS y MI. */
+    tipo: "Alta dependencia previa – NO CÓDIGO (clínica evidente)",
+    aviso: (edad)=>`Paciente de ${edad} años con inicio brusco de clínica neurológica evidente.`,
+    edad: 85,
+    clinicaTexto: `
+      <strong>Sintomatología:</strong> hemiplejia completa de un lado, afasia significativa y desviación fija de la mirada.
+    `,
+    antecedentes: `
+      <strong>Comorbilidades:</strong> HTA, cardiopatía isquémica.<br>
+      <strong>Situación basal:</strong> ABVD: necesita ayuda para la mayoría de actividades · Cognición: deterioro cognitivo moderado.
+    `,
+    constantes: `
+      <strong>Constantes:</strong> TA 176/98 · FC 80 · SatO₂ 96% · Glu 112 mg/dL · Temp 36.6 °C<br>
+      <strong>ECG:</strong> Sinusal.
+    `,
+    hora: `<strong>Hora de inicio:</strong> ~50 min.`,
+    md: { arm:1, leg:1, gaze:1, noObey:0, recNo:0, pas:176 },
+    cumpleCodigo: false,
+    destino: "NINGUNO",
+    fixedWeakSide: "derecha"
+  }
+];
+
+/* ==========================
+   Tiempo
+   ========================== */
+function formatearTiempo(seg){ const m=String(Math.floor(seg/60)).padStart(2,'0'); const s=String(seg%60).padStart(2,'0'); return `${m}:${s}`; }
+function actualizarTiempo(){ document.getElementById("tiempo").textContent = formatearTiempo(segundos); }
+function flashTiempo(){ const c=document.getElementById("cronometro"); c.classList.add("flash"); setTimeout(()=>c.classList.remove("flash"),400); }
+function iniciarCronometro(){
+  if(intervalo) clearInterval(intervalo);
+  intervalo = setInterval(()=>{
+    if(simulacroFinalizado) return;
+    segundos++; actualizarTiempo();
+  },1000);
+}
+function pararCronometro(){ simulacroFinalizado = true; if(intervalo){ clearInterval(intervalo); intervalo=null; } }
+
+/* ==========================
+   Cálculo "oculto" de Madrid DIRECT
+   ========================== */
+function calcMadridFromCase(c) {
+  let p = 0;
+  p += c.md.arm;
+  p += c.md.leg;
+  p += c.md.gaze;
+  if(c.md.noObey===1){ p += 1; } else { if(c.md.recNo===1) p += 1; }
+  const pas = c.md.pas;
+  if(pas>=180 && pas<=189) p -= 1;
+  else if(pas>=190 && pas<=199) p -= 2;
+  else if(pas>=200 && pas<=209) p -= 3;
+  else if(pas>209) p -= 4;
+  if(c.edad >= 85) p -= (c.edad - 85);
+  return p;
+}
+
+/* ==========================
+   UI helpers
+   ========================== */
+function resetUI(){
+  pararCronometro(); simulacroFinalizado=false; segundos=0; actualizarTiempo();
+  document.getElementById("tiempo").classList.remove("finalizado");
+
+  document.getElementById("btnMovilizar").classList.remove("hidden");
+  document.getElementById("cronometro").classList.add("hidden");
+  document.getElementById("emojiPanel").classList.add("hidden");
+  document.getElementById("panelInfo").classList.add("hidden");
+  document.getElementById("madridDirectSection").classList.add("hidden");
+  document.getElementById("btnAlerta").classList.add("hidden");
+  document.getElementById("destinoHospital").classList.add("hidden");
+  document.getElementById("textoDestino").textContent = "";
+
+  document.getElementById("descClinica").innerHTML = `<em>Al pulsar, verás la <strong>sintomatología</strong> del paciente. La <strong>puntuación</strong> de Madrid Direct la debes <strong>calcular tú</strong> después, con los ítems.</em>`;
+  document.getElementById("descConstantes").innerHTML = `<em>Pulsa para ver TA, FC, SatO₂, Glucemia, Temperatura y ECG.</em>`;
+  document.getElementById("descAntecedentes").innerHTML = `<em>Consulta comorbilidades y <strong>situación basal</strong> (ABVD, Cognición).</em>`;
+  document.getElementById("descHora").innerHTML = `<em>Pulsa para conocer la hora de inicio/última vez visto bien.</em>`;
+
+  ["btnClinica","btnConstantes","btnAntecedentes","btnHora"].forEach(id=>{
+    const el = document.getElementById(id);
+    el.classList.remove("emoji-disabled"); el.dataset.done="0";
+  });
+
+  document.getElementById("panelInfo").innerHTML = "";
+  document.getElementById("inputMadrid").value="";
+  document.getElementById("msgMadrid").textContent="";
+  ["arm_msd_res","arm_msi_res","leg_mid_res","leg_mii_res","gaze_res","obey_res","recognize_res"].forEach(id=>{
+    document.getElementById(id).textContent = "";
+  });
+
+  document.getElementById("gameOverOverlay").style.display = "none";
+  document.getElementById("successOverlay").style.display = "none";
+
+  accionesRealizadas = 0;
+}
+
+function seleccionarCasoAleatorio(){
+  const idx = Math.floor(Math.random()*casos.length);
+  currentCase = casos[idx];
+
+  weakArmSide = null; weakLegSide = null;
+
+  // Lateralidad coherente para hemiplejia completa
+  if(currentCase.md.arm===1 && currentCase.md.leg===1 && currentCase.fixedWeakSide){
+    if(currentCase.fixedWeakSide === "derecha"){
+      weakArmSide = 'MSD'; weakLegSide = 'MID';
+    } else {
+      weakArmSide = 'MSI'; weakLegSide = 'MII';
+    }
+  } else {
+    if(currentCase.md.arm===1){
+      weakArmSide = Math.random() < 0.5 ? 'MSD' : 'MSI';
+    }
+    if(currentCase.md.leg===1){
+      weakLegSide = Math.random() < 0.5 ? 'MID' : 'MII';
+    }
+  }
+
+  document.getElementById("textoCaso").textContent = currentCase.aviso(currentCase.edad);
+  correctMadrid = calcMadridFromCase(currentCase);
+}
+
+function iniciarNuevoCaso(){ resetUI(); seleccionarCasoAleatorio(); }
+
+/* ==========================
+   Registrar acciones (emojis)
+   ========================== */
+function registrarAccionHTML(desc, targetId, emojiBtn){
+  const panel = document.getElementById("panelInfo");
+  panel.classList.remove("hidden");
+
+  document.getElementById(targetId).innerHTML = desc;
+
+  const bloque = document.createElement("div");
+  bloque.className = "bg-white p-4 rounded-xl border shadow";
+  bloque.innerHTML = desc;
+  panel.appendChild(bloque);
+
+  segundos += 90; actualizarTiempo(); flashTiempo();
+
+  if(emojiBtn && emojiBtn.dataset){
+    if(emojiBtn.dataset.done !== "1"){
+      emojiBtn.dataset.done="1";
+      emojiBtn.classList.add("emoji-disabled");
+      accionesRealizadas++;
+      if(accionesRealizadas >= 4){
+        document.getElementById("madridDirectSection").classList.remove("hidden");
+      }
+    }
+  } else {
+    accionesRealizadas++;
+    if(accionesRealizadas >= 4){
+      document.getElementById("madridDirectSection").classList.remove("hidden");
+    }
+  }
+}
+
+/* ==========================
+   Ítems (sin puntos)
+   ========================== */
+function setItemResult(spanId, okText, badText, isOK){
+  const el = document.getElementById(spanId);
+  el.textContent = isOK ? okText : badText;
+  el.className = isOK ? "text-green-700 font-semibold" : "text-red-700 font-semibold";
+}
+
+function handleCheck(tag){
+  switch(tag){
+    case 'arm_msd':
+      if(weakArmSide===null){ setItemResult('arm_msd_res',"Sí","No",true); }
+      else setItemResult('arm_msd_res',"Sí","No", weakArmSide!=='MSD');
+      break;
+    case 'arm_msi':
+      if(weakArmSide===null){ setItemResult('arm_msi_res',"Sí","No",true); }
+      else setItemResult('arm_msi_res',"Sí","No", weakArmSide!=='MSI');
+      break;
+    case 'leg_mid':
+      if(weakLegSide===null){ setItemResult('leg_mid_res',"Sí","No",true); }
+      else setItemResult('leg_mid_res',"Sí","No", weakLegSide!=='MID');
+      break;
+    case 'leg_mii':
+      if(weakLegSide===null){ setItemResult('leg_mii_res',"Sí","No",true); }
+      else setItemResult('leg_mii_res',"Sí","No", weakLegSide!=='MII');
+      break;
+    case 'gaze':
+      setItemResult('gaze_res',"Sí","No", currentCase.md.gaze===0 ? false : true);
+      break;
+    case 'obey':
+      setItemResult('obey_res',"Sí","No", currentCase.md.noObey===1 ? false : true);
+      if(currentCase.md.noObey===1){
+        const r = document.getElementById('recognize_res');
+        r.textContent = "No valorable (no obedece)";
+        r.className = "text-gray-600 italic";
+      } else {
+        document.getElementById('recognize_res').textContent = "";
+        document.getElementById('recognize_res').className = "text-sm";
+      }
+      break;
+    case 'recognize':
+      if(currentCase.md.noObey===1){
+        const r = document.getElementById('recognize_res');
+        r.textContent = "No valorable (no obedece)";
+        r.className = "text-gray-600 italic";
+      } else {
+        setItemResult('recognize_res',"Sí","No", currentCase.md.recNo===1 ? false : true);
+      }
+      break;
+  }
+}
+
+/* ==========================
+   Eventos UI
+   ========================== */
+document.getElementById("btnMovilizar").addEventListener("click",()=>{
+  document.getElementById("btnMovilizar").classList.add("hidden");
+  document.getElementById("cronometro").classList.remove("hidden");
+  document.getElementById("emojiPanel").classList.remove("hidden");
+  iniciarCronometro();
+});
+
+document.getElementById("btnClinica").addEventListener("click",(e)=>{
+  const desc = currentCase.clinicaTexto;
+  registrarAccionHTML(desc,"descClinica",e.currentTarget);
+});
+document.getElementById("btnConstantes").addEventListener("click",(e)=>{
+  const desc = currentCase.constantes;
+  registrarAccionHTML(desc,"descConstantes",e.currentTarget);
+});
+document.getElementById("btnAntecedentes").addEventListener("click",(e)=>{
+  const desc = currentCase.antecedentes;
+  registrarAccionHTML(desc,"descAntecedentes",e.currentTarget);
+});
+document.getElementById("btnHora").addEventListener("click",(e)=>{
+  const desc = currentCase.hora;
+  registrarAccionHTML(desc,"descHora",e.currentTarget);
+});
+
+// Ítems MD
+document.querySelectorAll("[data-check]").forEach(btn=>{
+  btn.addEventListener("click",()=> handleCheck(btn.getAttribute("data-check")));
+});
+
+// Validación MADRID DIRECT (informativa)
+document.getElementById("btnValidarMadrid").addEventListener("click",()=>{
+  const valStr = document.getElementById("inputMadrid").value;
+  const msg = document.getElementById("msgMadrid");
+  if(valStr===""){
+    msg.textContent = "Introduce una puntuación.";
+    msg.className = "text-red-700 font-semibold text-lg";
+    return;
+  }
+  const val = Number(valStr);
+  if(val === correctMadrid){
+    msg.textContent = `Cálculo correcto ✔`;
+    msg.className = "text-green-700 font-semibold text-lg";
+  } else {
+    msg.textContent = `Incorrecto ✘. Revisa tu exploración.`;
+    msg.className = "text-red-700 font-semibold text-lg";
+  }
+});
+
+/* ==========================
+   Botones de decisión: Cumple / NO cumple
+   ========================== */
+function showGameOver(msg){
+  pararCronometro();
+  document.getElementById("goMsg").textContent = msg || "Has fallado en la decisión.";
+  document.getElementById("gameOverOverlay").style.display = "flex";
+}
+function showSuccess(){
+  pararCronometro();
+  document.getElementById("okMsg").textContent = "Tiempo total: " + document.getElementById("tiempo").textContent;
+  document.getElementById("successOverlay").style.display = "flex";
+}
+
+document.getElementById("btnCumple").addEventListener("click", ()=>{
+  if(currentCase.cumpleCodigo){
+    document.getElementById("btnAlerta").classList.remove("hidden");
+    document.getElementById("msgMadrid").textContent = "Ahora gestiona la Alerta hospitalaria para finalizar.";
+    document.getElementById("msgMadrid").className = "text-slate-700 text-sm";
+  } else {
+    showGameOver("El caso NO cumplía criterios. Decisión incorrecta.");
+  }
+});
+
+document.getElementById("btnNoCumple").addEventListener("click", ()=>{
+  if(!currentCase.cumpleCodigo){
+    showSuccess();
+  } else {
+    showGameOver("El caso SÍ cumplía criterios. Decisión incorrecta.");
+  }
+});
+
+/* ==========================
+   Gestionar Alerta hospitalaria
+   ========================== */
+document.getElementById("btnAlerta").addEventListener("click",()=>{
+  segundos += 300; actualizarTiempo(); flashTiempo();
+  if(currentCase.cumpleCodigo){
+    document.getElementById("destinoHospital").classList.remove("hidden");
+    document.getElementById("textoDestino").textContent = `Destino: ${currentCase.destino}`;
+  }
+  showSuccess();
+});
+
+/* Reinicios */
+document.getElementById("btnReiniciarGO").addEventListener("click",()=> iniciarNuevoCaso());
+document.getElementById("btnReiniciarOK").addEventListener("click",()=> iniciarNuevoCaso());
+
+/* Inicio */
+window.addEventListener("DOMContentLoaded",()=>{ iniciarNuevoCaso(); });
+</script>
+</body>
+</html>
