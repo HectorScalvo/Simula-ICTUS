@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Simula‑ICTUS · Simulador Código ICTUS - SUMMA112</title>
+<title>Simula‑ICTUS • Simulador Código ICTUS - SUMMA112</title>
 <!-- Tailwind CSS desde CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -73,26 +73,23 @@
       <div class="flex items-center gap-5 flex-wrap">
         <!-- Cerebro derretido (SVG) -->
         <div class="brain">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <defs>
-              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stop-color="#ff99b3"/>
-                <stop offset="100%" stop-color="#ff6f91"/>
-              </linearGradient>
-            </defs>
-            <!-- Masa cerebral -->
-            <ellipse cx="100" cy="85" rx="70" ry="55" fill="url(#g1)" stroke="#c13b63" stroke-width="3"/>
-            <!-- Giros -->
-            <path d="M50,90 C70,70 130,70 150,90" fill="none" stroke="#c13b63" stroke-width="3"/>
-            <path d="M60,105 C80,85 120,85 140,105" fill="none" stroke="#c13b63" stroke-width="3"/>
-            <path d="M70,75 C85,65 115,65 130,75" fill="none" stroke="#c13b63" stroke-width="3"/>
-            <!-- Goteos -->
-            <path class="drip" d="M85,115 c5,20 -5,25 -5,40 c0,5 8,5 8,0 c0,-12 8,-18 5,-35z" fill="#ff6f91" opacity="0.9"/>
-            <path class="drip" style="animation-delay:.6s" d="M120,110 c6,18 -6,24 -6,36 c0,5 8,5 8,0 c0,-9 8,-15 5,-30z" fill="#ff6f91" opacity="0.85"/>
-          </svg>
-        </div>
+<svg width="220" height="220" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brain outline -->
+  <path d="M60 80 C40 80 40 120 60 120 C60 150 100 150 100 130 C100 150 140 150 140 120 C160 120 160 80 140 80 C140 50 100 50 100 70 C100 50 60 50 60 80 Z"
+        fill="#f4b6c2" stroke="#a84c5c" stroke-width="4"/>
+  <!-- Lightning bolt (neurological deficit) -->
+  <polygon points="100,70 115,95 105,95 120,130 95,105 105,105" fill="#ffcc00" stroke="#e0a800" stroke-width="3"/>
+  <!-- Ambulance simplified -->
+  <rect x="50" y="135" width="100" height="35" rx="6" fill="#e6f2ff" stroke="#3a6ea5" stroke-width="3"/>
+  <rect x="55" y="140" width="25" height="15" fill="#ffffff" stroke="#3a6ea5" stroke-width="2"/>
+  <circle cx="80" cy="170" r="8" fill="#3a6ea5"/>
+  <circle cx="140" cy="170" r="8" fill="#3a6ea5"/>
+  <!-- Light -->
+  <rect x="135" y="130" width="15" height="6" fill="#ff3333"/>
+</svg>
+</div>
         <div class="flex-1">
-          <h1 class="text-5xl font-extrabold text-blue-900 tracking-tight">Simula‑ICTUS</h1>
+          <h1 class="text-5xl font-extrabold text-blue-900 tracking-tight">Simula‑ICTUS <span class="text-sm text-blue-800 font-light">by Héctor Sales</span></h1>
           <p class="mt-3 text-lg text-gray-800">
             <strong>Bienvenido/a a Simula‑ICTUS.</strong> Tu misión es <strong>valorar y gestionar</strong> un posible caso de ictus en el <strong>menor tiempo posible</strong>.
             Explora al paciente, revisa las constantes, los antecedentes (situación basal) y la <em>hora de inicio</em>. Después, <strong>calcula la puntuación total de la escala MADRID DIRECT</strong>
@@ -112,40 +109,24 @@
     <!-- Botón de inicio: Ambulancia SVG estilo SUMMA112 -->
     <div class="flex flex-col items-center">
       <button id="btnMovilizar" class="amb-btn transition p-3 rounded-xl bg-white/70 border hover:shadow-lg" aria-label="Iniciar simulación" title="Iniciar simulación">
-        <!-- Dibujo estilizado: carrocería amarilla, cuadros verdes, franja roja, 112, SUMMA 112, V.I.R. -->
-        <svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <!-- Sombra -->
-          <ellipse cx="190" cy="160" rx="150" ry="12" fill="#000" opacity="0.10"/>
-          <!-- Carrocería principal -->
-          <path d="M50 120 L50 80 Q55 60 75 60 L240 60 Q255 60 265 68 L310 100 Q320 108 320 120 L320 120 Z"
-                fill="#f5ec3b" stroke="#1f2937" stroke-width="3"/>
-          <!-- Cabina -->
-          <path d="M240 60 L290 60 Q305 60 315 70 L330 90 Q335 95 330 100 L320 110 L265 68 Q255 60 240 60 Z"
-                fill="#f5ec3b" stroke="#1f2937" stroke-width="3"/>
-          <!-- Ventana cabina -->
-          <path d="M265 66 L305 66 Q312 66 317 72 L327 86 L310 100 L275 72 Q269 66 265 66 Z"
-                fill="#9dd1ff" stroke="#1f2937" stroke-width="2"/>
-          <!-- Cuadros verdes (estrella lateral) -->
-          <rect x="65" y="98" width="200" height="14" fill="#2ea44f"/>
-          <rect x="65" y="84" width="18" height="14" fill="#2ea44f"/>
-          <rect x="101" y="84" width="18" height="14" fill="#2ea44f"/>
-          <rect x="137" y="84" width="18" height="14" fill="#2ea44f"/>
-          <rect x="173" y="84" width="18" height="14" fill="#2ea44f"/>
-          <!-- Franja roja -->
-          <rect x="65" y="116" width="250" height="10" fill="#e11d48"/>
-          <!-- Texto lateral -->
-          <text x="78" y="80" font-size="15" font-weight="700" fill="#1f2937">SUMMA 112</text>
-          <text x="78" y="96" font-size="12" font-weight="700" fill="#1f2937">V.I.R.</text>
-          <text x="210" y="80" font-size="16" font-weight="800" fill="#1f2937">112</text>
-          <!-- Ruedas -->
-          <circle cx="120" cy="135" r="19" fill="#111827"/>
-          <circle cx="120" cy="135" r="8" fill="#6b7280"/>
-          <circle cx="265" cy="135" r="19" fill="#111827"/>
-          <circle cx="265" cy="135" r="8" fill="#6b7280"/>
-          <!-- Luz superior -->
-          <rect x="250" y="52" width="16" height="8" rx="2" class="light-blink" fill="#3b82f6"/>
-        </svg>
-        <div class="mt-2 text-sm text-gray-700">Pulsa la ambulancia para iniciar</div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <div style="width: 100px; height: 60px; border: 1px solid black;">
+            <div style="height: 20px; background: red;"></div>
+            <div style="height: 20px; background: yellow;"></div>
+            <div style="height: 20px; background: red;"></div>
+          </div>
+          <div style="width: 100px; height: 60px; background: red; position: relative;">
+            <span style="position: absolute; top: 5px; left: 10px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 5px; left: 30px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 5px; left: 50px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 5px; left: 70px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 25px; left: 20px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 25px; left: 40px; color: white; font-size: 16px;">★</span>
+            <span style="position: absolute; top: 25px; left: 60px; color: white; font-size: 16px;">★</span>
+          </div>
+        </div>
+        <div style="margin-top: 10px; color: blue; font-weight: bold; text-align: center; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">SUMMA112</div>
+        <div class="mt-2 text-sm text-gray-700">Pulsa el botón para iniciar</div>
       </button>
     </div>
 
@@ -161,7 +142,7 @@
       <!-- Paciente / Clínica -->
       <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
         <div class="flex items-start gap-4">
-          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑‍🦳</div>
+          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑🦳</div>
           <div class="flex-1">
             <div class="text-lg font-bold text-gray-800">Paciente (Clínica)</div>
             <div id="descClinica" class="text-gray-700 mt-2">
@@ -291,9 +272,10 @@
     </div>
 
     <!-- Créditos discretos -->
-    <div class="text-[11px] text-gray-500 text-right pt-2">
-      Simula‑ICTUS <span class="opacity-80">by Héctor Sales</span> · desarrollado con apoyo de <span class="opacity-80">M365 Copilot</span>
-    </div>
+    <div class="text-[11px] text-gray-500 text-right pt-2"><strong>
+      Simula ICTUS by Héctor Sales • desarrollado con apoyo de M365 Copilot - Aplicación para formación de la Comisión de Neurología SUMMA112<br>
+      Hector.sales@salud.madrid.org
+    </strong></div>
   </div>
 
   <!-- GAME OVER Overlay -->
@@ -347,10 +329,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> HTA, dislipemia; no anticoagulado.<br>
-      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 182/100 · FC 92 · SatO₂ 95% · Glu 118 mg/dL · Temp 36.7 °C<br>
+      <strong>Constantes:</strong> TA 182/100 • FC 92 • SatO₂ 95% • Glu 118 mg/dL • Temp 36.7 °C<br>
       <strong>ECG:</strong> Ritmo sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> ~35-40 min.`,
@@ -367,10 +349,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> DM2 con insulina; HTA controlada.<br>
-      <strong>Situación basal:</strong> ABVD: precisa ayuda parcial · Cognición: sin deterioro relevante.
+      <strong>Situación basal:</strong> ABVD: precisa ayuda parcial • Cognición: sin deterioro relevante.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 150/85 · FC 96 · SatO₂ 97% · <strong class="text-red-600">Glu 42 mg/dL</strong> · Temp 36.5 °C<br>
+      <strong>Constantes:</strong> TA 150/85 • FC 96 • SatO₂ 97% • <strong class="text-red-600">Glu 42 mg/dL</strong> • Temp 36.5 °C<br>
       <strong>ECG:</strong> Sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> ~15 min.`,
@@ -380,17 +362,17 @@ const casos = [
   },
   {
     tipo: "Inicio >24 h – NO CÓDIGO",
-    aviso: (edad)=>`Paciente de ${edad} años con síntomas neurológicos iniciados hace más de 24 horas.`,
+    aviso: (edad)=>`Paciente de ${edad} años con síntomas neurológicos.`,
     edad: 73,
     clinicaTexto: `
       <strong>Sintomatología:</strong> torpeza leve de mano y habla pastosa de más de un día de evolución, sin otros cambios relevantes.
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> Tabaquismo activo, dislipemia; no FA conocida.<br>
-      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 138/82 · FC 78 · SatO₂ 98% · Glu 104 mg/dL · Temp 36.6 °C<br>
+      <strong>Constantes:</strong> TA 138/82 • FC 78 • SatO₂ 98% • Glu 104 mg/dL • Temp 36.6 °C<br>
       <strong>ECG:</strong> Sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> 26 h.`,
@@ -407,10 +389,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> HTA, exfumador; no anticoagulado.<br>
-      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 168/94 · FC 84 · SatO₂ 96% · Glu 110 mg/dL · Temp 36.6 °C<br>
+      <strong>Constantes:</strong> TA 168/94 • FC 84 • SatO₂ 96% • Glu 110 mg/dL • Temp 36.6 °C<br>
       <strong>ECG:</strong> Sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> ~60 min.`,
@@ -427,10 +409,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> HTA, FA paroxística sin anticoagulación actual.<br>
-      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 146/88 · FC 84 (irregular) · SatO₂ 98% · Glu 102 mg/dL · Temp 36.5 °C<br>
+      <strong>Constantes:</strong> TA 146/88 • FC 84 (irregular) • SatO₂ 98% • Glu 102 mg/dL • Temp 36.5 °C<br>
       <strong>ECG:</strong> FA paroxística.
     `,
     hora: `<strong>Hora de inicio:</strong> 2 h; síntomas resueltos.`,
@@ -447,10 +429,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> Fumador; HTA mal controlada.<br>
-      <strong>Situación basal:</strong> ABVD: independiente · Cognición: sin deterioro.
+      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 198/106 · FC 88 · SatO₂ 97% · Glu 108 mg/dL · Temp 36.8 °C<br>
+      <strong>Constantes:</strong> TA 198/106 • FC 88 • SatO₂ 97% • Glu 108 mg/dL • Temp 36.8 °C<br>
       <strong>ECG:</strong> Sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> 30 min.`,
@@ -470,10 +452,10 @@ const casos = [
     `,
     antecedentes: `
       <strong>Comorbilidades:</strong> HTA, cardiopatía isquémica.<br>
-      <strong>Situación basal:</strong> ABVD: necesita ayuda para la mayoría de actividades · Cognición: deterioro cognitivo moderado.
+      <strong>Situación basal:</strong> ABVD: necesita ayuda para la mayoría de actividades • Cognición: deterioro cognitivo moderado.
     `,
     constantes: `
-      <strong>Constantes:</strong> TA 176/98 · FC 80 · SatO₂ 96% · Glu 112 mg/dL · Temp 36.6 °C<br>
+      <strong>Constantes:</strong> TA 176/98 • FC 80 • SatO₂ 96% • Glu 112 mg/dL • Temp 36.6 °C<br>
       <strong>ECG:</strong> Sinusal.
     `,
     hora: `<strong>Hora de inicio:</strong> ~50 min.`,
@@ -587,36 +569,28 @@ function iniciarNuevoCaso(){ resetUI(); seleccionarCasoAleatorio(); }
 /* ==========================
    Registrar acciones (emojis)
    ========================== */
+
 function registrarAccionHTML(desc, targetId, emojiBtn){
-  const panel = document.getElementById("panelInfo");
-  panel.classList.remove("hidden");
-
-  document.getElementById(targetId).innerHTML = desc;
-
-  const bloque = document.createElement("div");
-  bloque.className = "bg-white p-4 rounded-xl border shadow";
-  bloque.innerHTML = desc;
-  panel.appendChild(bloque);
-
-  segundos += 90; actualizarTiempo(); flashTiempo();
-
-  if(emojiBtn && emojiBtn.dataset){
-    if(emojiBtn.dataset.done !== "1"){
-      emojiBtn.dataset.done="1";
-      emojiBtn.classList.add("emoji-disabled");
-      accionesRealizadas++;
-      if(accionesRealizadas >= 4){
-        document.getElementById("madridDirectSection").classList.remove("hidden");
-      }
-    }
-  } else {
-    accionesRealizadas++;
-    if(accionesRealizadas >= 4){
-      document.getElementById("madridDirectSection").classList.remove("hidden");
-    }
-  }
+ const panel=document.getElementById('panelInfo');
+ panel.classList.remove('hidden');
+ document.getElementById(targetId).innerHTML=desc;
+ const bloque=document.createElement('div');
+ bloque.className='bg-white p-4 rounded-xl border shadow';
+ bloque.innerHTML=desc;
+ panel.appendChild(bloque);
+ if(targetId==='descClinica') segundos+=240;
+ else if(targetId==='descConstantes') segundos+=180;
+ else segundos+=90;
+ actualizarTiempo(); flashTiempo();
+ if(emojiBtn && emojiBtn.dataset && emojiBtn.dataset.done!=='1'){
+   emojiBtn.dataset.done='1';
+   emojiBtn.classList.add('emoji-disabled');
+   accionesRealizadas++;
+ }
+ if(accionesRealizadas>=4){
+   document.getElementById('madridDirectSection').classList.remove('hidden');
+ }
 }
-
 /* ==========================
    Ítems (sin puntos)
    ========================== */
