@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Simula‑ICTUS · Simulador Código ICTUS - SUMMA112</title>
+<title>Simula‑ICTUS • Simulador Código ICTUS - SUMMA112</title>
 <!-- Tailwind CSS desde CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -66,7 +66,7 @@
 </head>
 
 <body class="p-6">
-<div style='position:fixed;top:10px;right:10px;z-index:9999;'><select id='selectorCasos' class='border p-2 rounded bg-white shadow'></select></div>
+
   <div class="max-w-6xl mx-auto bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-8 border border-white/40">
 
     <!-- Presentación / Simula‑ICTUS (nuevo estilo) -->
@@ -108,7 +108,15 @@
     </div>
 
     <!-- Botón de inicio: Ambulancia SVG estilo SUMMA112 -->
-    <div class="flex flex-col items-center">
+    
+<div class='flex justify-center gap-3 mt-2'>
+ <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso1' style='background:#1e3a8a;'>Caso 1</button>
+ <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso2' style='background:#047857;'>Caso 2</button>
+ <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso3' style='background:#b91c1c;'>Caso 3</button>
+ <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso4' style='background:#92400e;'>Caso 4</button>
+</div>
+
+<div class="flex flex-col items-center">
       <button id="btnMovilizar" class="amb-btn transition p-3 rounded-xl bg-white/70 border hover:shadow-lg" aria-label="Iniciar simulación" title="Iniciar simulación">
         <div style="display: flex; gap: 10px; justify-content: center;">
           <div style="width: 100px; height: 60px; border: 1px solid black;">
@@ -143,7 +151,7 @@
       <!-- Paciente / Clínica -->
       <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
         <div class="flex items-start gap-4">
-          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑‍🦳</div>
+          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑🦳</div>
           <div class="flex-1">
             <div class="text-lg font-bold text-gray-800">Paciente (Clínica)</div>
             <div id="descClinica" class="text-gray-700 mt-2">
@@ -619,6 +627,17 @@ function iniciarNuevoCaso(){
  document.getElementById('textoCaso').textContent=currentCase.aviso(currentCase.edad);
  correctMadrid=calcMadridFromCase(currentCase);
 }
+
+
+// BOTONES DE CASOS DIRECTOS
+['1','2','3','4'].forEach(n=>{
+ document.getElementById('btnCaso'+n).addEventListener('click',()=>{
+   resetUI();
+   currentCase=casos[parseInt(n)-1];
+   document.getElementById('textoCaso').textContent=currentCase.aviso(currentCase.edad);
+   correctMadrid=calcMadridFromCase(currentCase);
+  });
+});
 
 /* Inicio */
 window.addEventListener("DOMContentLoaded",()=>{ iniciarNuevoCaso(); });
