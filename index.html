@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Simula‑ICTUS • Simulador Código ICTUS - SUMMA112</title>
+<title>Simula‑ICTUS · Simulador Código ICTUS - SUMMA112</title>
 <!-- Tailwind CSS desde CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -66,6 +66,7 @@
 </head>
 
 <body class="p-6">
+<div style='position:fixed;top:10px;right:10px;z-index:9999;'><select id='selectorCasos' class='border p-2 rounded bg-white shadow'></select></div>
   <div class="max-w-6xl mx-auto bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-8 border border-white/40">
 
     <!-- Presentación / Simula‑ICTUS (nuevo estilo) -->
@@ -142,7 +143,7 @@
       <!-- Paciente / Clínica -->
       <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
         <div class="flex items-start gap-4">
-          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑🦳</div>
+          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑‍🦳</div>
           <div class="flex-1">
             <div class="text-lg font-bold text-gray-800">Paciente (Clínica)</div>
             <div id="descClinica" class="text-gray-700 mt-2">
@@ -320,150 +321,10 @@ let weakLegSide = null; // 'MID' o 'MII' si hay déficit de pierna
    (incluye NO‑Código por basal con hemiplejia completa coherente)
    ========================== */
 const casos = [
-  {
-    tipo: "Compatible con Código Ictus",
-    aviso: (edad)=>`Paciente de ${edad} años con inicio brusco de síntomas neurológicos compatibles.`,
-    edad: 78,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> dificultad para articular el lenguaje, pérdida brusca de fuerza en un lado del cuerpo y la familia observa que fija la mirada hacia un lado.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> HTA, dislipemia; no anticoagulado.<br>
-      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 182/100 • FC 92 • SatO₂ 95% • Glu 118 mg/dL • Temp 36.7 °C<br>
-      <strong>ECG:</strong> Ritmo sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> ~35-40 min.`,
-    md: { arm:1, leg:1, gaze:1, noObey:1, recNo:0, pas:182 },
-    cumpleCodigo: true,
-    destino: "Unidad de ICTUS – Hospital Doce de Octubre"
-  },
-  {
-    tipo: "Mímico (hipoglucemia) – NO CÓDIGO",
-    aviso: (edad)=>`Paciente de ${edad} años con alteración neurológica aguda potencialmente reversible.`,
-    edad: 84,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> sudoración, confusión, inestabilidad para la marcha y mejoría parcial tras aporte de azúcar.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> DM2 con insulina; HTA controlada.<br>
-      <strong>Situación basal:</strong> ABVD: precisa ayuda parcial • Cognición: sin deterioro relevante.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 150/85 • FC 96 • SatO₂ 97% • <strong class="text-red-600">Glu 42 mg/dL</strong> • Temp 36.5 °C<br>
-      <strong>ECG:</strong> Sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> ~15 min.`,
-    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:150 },
-    cumpleCodigo: false,
-    destino: "NINGUNO"
-  },
-  {
-    tipo: "Inicio >24 h – NO CÓDIGO",
-    aviso: (edad)=>`Paciente de ${edad} años con síntomas neurológicos.`,
-    edad: 73,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> torpeza leve de mano y habla pastosa de más de un día de evolución, sin otros cambios relevantes.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> Tabaquismo activo, dislipemia; no FA conocida.<br>
-      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 138/82 • FC 78 • SatO₂ 98% • Glu 104 mg/dL • Temp 36.6 °C<br>
-      <strong>ECG:</strong> Sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> 26 h.`,
-    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:138 },
-    cumpleCodigo: false,
-    destino: "NINGUNO"
-  },
-  {
-    tipo: "Compatible con Código Ictus",
-    aviso: (edad)=>`Paciente de ${edad} años con inicio súbito de síntomas neurológicos compatibles.`,
-    edad: 69,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> habla pastosa, sensación de inestabilidad y visión doble de inicio brusco.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> HTA, exfumador; no anticoagulado.<br>
-      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 168/94 • FC 84 • SatO₂ 96% • Glu 110 mg/dL • Temp 36.6 °C<br>
-      <strong>ECG:</strong> Sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> ~60 min.`,
-    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:168 },
-    cumpleCodigo: true,
-    destino: "Unidad de ICTUS – Hospital Gregorio Marañón"
-  },
-  {
-    tipo: "TIA resuelto – NO CÓDIGO",
-    aviso: (edad)=>`Paciente de ${edad} años con episodios transitorios compatibles, actualmente asintomático.`,
-    edad: 74,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> episodio breve previo de hormigueo y torpeza fina en una mano, resuelto en el momento de la valoración.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> HTA, FA paroxística sin anticoagulación actual.<br>
-      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 146/88 • FC 84 (irregular) • SatO₂ 98% • Glu 102 mg/dL • Temp 36.5 °C<br>
-      <strong>ECG:</strong> FA paroxística.
-    `,
-    hora: `<strong>Hora de inicio:</strong> 2 h; síntomas resueltos.`,
-    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:146 },
-    cumpleCodigo: false,
-    destino: "NINGUNO"
-  },
-  {
-    tipo: "Cefalea brusca intensa – Compatible",
-    aviso: (edad)=>`Paciente de ${edad} años con cefalea súbita intensa y síntomas vegetativos.`,
-    edad: 62,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> dolor de cabeza de inicio inmediato y muy intenso, con náuseas y rigidez de nuca.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> Fumador; HTA mal controlada.<br>
-      <strong>Situación basal:</strong> ABVD: independiente • Cognición: sin deterioro.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 198/106 • FC 88 • SatO₂ 97% • Glu 108 mg/dL • Temp 36.8 °C<br>
-      <strong>ECG:</strong> Sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> 30 min.`,
-    md: { arm:0, leg:0, gaze:0, noObey:0, recNo:0, pas:198 },
-    cumpleCodigo: true,
-    destino: "Unidad de ICTUS – Hospital Clínico San Carlos"
-  },
-  {
-    /* NO‑CÓDIGO por situación basal, con clínica muy evidente.
-       Hemiplejia completa + afasia + desviación fija de la mirada.
-       Coherencia lateral MS y MI. */
-    tipo: "Alta dependencia previa – NO CÓDIGO (clínica evidente)",
-    aviso: (edad)=>`Paciente de ${edad} años con inicio brusco de clínica neurológica evidente.`,
-    edad: 85,
-    clinicaTexto: `
-      <strong>Sintomatología:</strong> hemiplejia completa de un lado, afasia significativa y desviación fija de la mirada.
-    `,
-    antecedentes: `
-      <strong>Comorbilidades:</strong> HTA, cardiopatía isquémica.<br>
-      <strong>Situación basal:</strong> ABVD: necesita ayuda para la mayoría de actividades • Cognición: deterioro cognitivo moderado.
-    `,
-    constantes: `
-      <strong>Constantes:</strong> TA 176/98 • FC 80 • SatO₂ 96% • Glu 112 mg/dL • Temp 36.6 °C<br>
-      <strong>ECG:</strong> Sinusal.
-    `,
-    hora: `<strong>Hora de inicio:</strong> ~50 min.`,
-    md: { arm:1, leg:1, gaze:1, noObey:0, recNo:0, pas:176 },
-    cumpleCodigo: false,
-    destino: "NINGUNO",
-    fixedWeakSide: "derecha"
-  }
+    {tipo:'Caso 1',aviso:(edad)=>`Paciente de 75 años con síntomas neurológicos.`,edad:75,clinicaTexto:`Comprensión adecuada con alteración del lenguaje, hemiparesia derecha más en pierna.`,antecedentes:`HTA, DL, exfumador, deterioro cognitivo leve, IABVD`,constantes:`TA175/89 FC125 FA Glu96 Temp36.9`,hora:`Hace 4 horas`,md:{arm:1,leg:1,gaze:0,noObey:0,recNo:0,pas:175},cumpleCodigo:true,destino:'Unidad ICTUS'},
+    {tipo:'Caso 2',aviso:(edad)=>`Paciente de 85 años con clínica grave.`,edad:85,clinicaTexto:`Hemiplejia izquierda, mirada fija derecha, afasia global.`,antecedentes:`HTA, DM2, DL, deterioro cognitivo leve, dependencia parcial`,constantes:`TA112/58 RS85 Glu72 Temp35.5`,hora:`Despertar hace 10h`,md:{arm:1,leg:1,gaze:1,noObey:1,recNo:1,pas:112},cumpleCodigo:true,destino:'Unidad ICTUS'},
+    {tipo:'Caso 3',aviso:(edad)=>`Paciente de 58 años con alteración conductual.`,edad:58,clinicaTexto:`Disartria, desatención, obediencia irregular.`,antecedentes:`DM1, HTA, IABVD`,constantes:`TA155/82 RS95 Glu30 Temp36.9`,hora:`30 minutos`,md:{arm:1,leg:1,gaze:0,noObey:1,recNo:0,pas:155},cumpleCodigo:false,destino:'NINGUNO'},
+    {tipo:'Caso 4',aviso:(edad)=>`Paciente con clínica cerebelosa.`,edad:66,clinicaTexto:`Ataxia, nistagmo, dismetría, inestabilidad.`,antecedentes:`HTA, DL`,constantes:`TA169/90 RS88 Glu110 Temp36.6`,hora:`1 hora evolución`,md:{arm:0,leg:0,gaze:0,noObey:0,recNo:0,pas:169},cumpleCodigo:true,destino:'Unidad ICTUS'}
 ];
 
 /* ==========================
@@ -564,7 +425,7 @@ function seleccionarCasoAleatorio(){
   correctMadrid = calcMadridFromCase(currentCase);
 }
 
-function iniciarNuevoCaso(){ resetUI(); seleccionarCasoAleatorio(); }
+
 
 /* ==========================
    Registrar acciones (emojis)
@@ -742,6 +603,22 @@ document.getElementById("btnAlerta").addEventListener("click",()=>{
 /* Reinicios */
 document.getElementById("btnReiniciarGO").addEventListener("click",()=> iniciarNuevoCaso());
 document.getElementById("btnReiniciarOK").addEventListener("click",()=> iniciarNuevoCaso());
+
+
+// POBLAR SELECTOR DE CASOS
+window.addEventListener('DOMContentLoaded', ()=>{
+ const sel=document.getElementById('selectorCasos');
+ casos.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.text='Caso #'+(i+1);sel.appendChild(o);});
+ iniciarNuevoCaso();
+});
+// INICIAR CASO DESDE DESPLEGABLE
+function iniciarNuevoCaso(){
+ resetUI();
+ const idx=parseInt(document.getElementById('selectorCasos').value||0);
+ currentCase=casos[idx];
+ document.getElementById('textoCaso').textContent=currentCase.aviso(currentCase.edad);
+ correctMadrid=calcMadridFromCase(currentCase);
+}
 
 /* Inicio */
 window.addEventListener("DOMContentLoaded",()=>{ iniciarNuevoCaso(); });
