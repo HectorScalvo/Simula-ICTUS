@@ -1,646 +1,767 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Simula‑ICTUS • Simulador Código ICTUS - SUMMA112</title>
-<!-- Tailwind CSS desde CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-  /* Fondo degradado animado pastel */
-  body{
-    background: linear-gradient(135deg,#d0e8ff,#f7d7ff,#ffe7d0);
-    background-size:400% 400%;
-    animation:fondo 18s ease infinite;
-    font-family:'Segoe UI',system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
-  }
-  @keyframes fondo{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-
-  /* Cronómetro enorme */
-  #tiempo{ font-size:7rem; font-weight:900; text-shadow:3px 3px 10px rgba(0,0,0,0.2) }
-  .flash{ animation:flashEffect .4s ease-in-out }
-  @keyframes flashEffect{ 0%{ background-color:rgba(255,0,0,.5) } 100%{ background-color:transparent } }
-  .finalizado{ color:#11a860!important; animation:pulse 1.8s ease-in-out infinite }
-  @keyframes pulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.05) } 100%{ transform:scale(1) } }
-
-  /* Botón ambulancia (SVG más realista) */
-  .amb-btn svg{ width:170px; height:110px }
-  .amb-btn:hover{ transform: scale(1.04) }
-  .light-blink{ animation: blink 1s infinite }
-  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.3} }
-
-  /* Cerebro “derretido” (hero) */
-  .brain svg{ width:150px; height:150px; filter: drop-shadow(0 10px 16px rgba(0,0,0,.15)) }
-  .drip{ animation: drip 2.8s ease-in-out infinite }
-  @keyframes drip{
-    0%{ transform: translateY(0px) }
-    50%{ transform: translateY(6px) }
-    100%{ transform: translateY(0px) }
-  }
-
-  /* Emojis grandes */
-  .emoji-btn{ font-size:4.2rem; line-height:1; cursor:pointer; transition: transform .2s, filter .2s; user-select:none }
-  .emoji-btn:hover{ transform:scale(1.08); filter:drop-shadow(0 6px 10px rgba(0,0,0,.15)) }
-  .emoji-disabled{ opacity:.45; filter:grayscale(.2); pointer-events:none }
-  .tag{ display:inline-block; padding:.15rem .5rem; border-radius:.5rem; font-size:.8rem; margin-right:.3rem }
-
-  /* Overlays */
-  #gameOverOverlay, #successOverlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.82);
-    display:none; align-items:center; justify-content:center; z-index:9999;
-  }
-  .go-text{
-    color:#ff4d4f; font-size:min(18vw,150px); font-weight:900; text-align:center; line-height:1.1;
-    text-shadow:0 0 30px rgba(255,77,79,.6);
-  }
-  .go-sub{ color:#fff; font-size:min(5vw,28px); margin-top:10px }
-  .go-actions{ margin-top:20px; display:flex; gap:12px; justify-content:center }
-
-  .ok-text{
-    color:#22c55e; font-size:min(18vw,150px); font-weight:900; text-align:center; line-height:1.1;
-    text-shadow:0 0 30px rgba(34,197,94,.6);
-  }
-  .ok-sub{ color:#fff; font-size:min(5vw,28px); margin-top:10px }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simula-ICTUS • Simulador Código ICTUS - SUMMA112</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#f3f6fb;
+      --panel:#ffffff;
+      --line:#d9e2ec;
+      --text:#0f172a;
+      --muted:#64748b;
+      --brand:#0f4c81;
+      --brand-2:#2563eb;
+      --ok:#15803d;
+      --ok-soft:#ecfdf3;
+      --bad:#b91c1c;
+      --bad-soft:#fef2f2;
+      --warn:#9a3412;
+      --warn-soft:#fff7ed;
+      --shadow:0 14px 40px rgba(15,23,42,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.06), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(15,76,129,.06), transparent 24%),
+        var(--bg);
+      color:var(--text);
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .app{max-width:1320px;margin:0 auto;padding:16px}
+    .shell{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border:1px solid rgba(217,226,236,.9);box-shadow:var(--shadow);border-radius:28px;padding:16px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 4px 16px rgba(15,23,42,.03)}
+    .title{font-weight:900;letter-spacing:-.03em;color:#0f3558}
+    .section-title{font-weight:800;font-size:clamp(1.05rem,1.8vw,1.3rem);letter-spacing:-.02em;color:#0f3558}
+    .metric{font-size:clamp(2rem,7vw,4.4rem);font-weight:900;line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+    .badge{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .78rem;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap}
+    .btn{border:0;border-radius:16px;font-weight:800;min-height:48px;padding:.9rem 1rem;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;cursor:pointer;transition:.18s ease}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+    .btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{filter:brightness(.98);transform:translateY(-1px)}
+    .btn-secondary{background:#fff;color:var(--text);border:1px solid var(--line)}.btn-secondary:hover{background:#f8fafc}
+    .btn-success{background:var(--ok);color:#fff}.btn-success:hover{filter:brightness(.98)}
+    .btn-danger{background:var(--bad);color:#fff}.btn-danger:hover{filter:brightness(.98)}
+    .btn-warning{background:var(--warn);color:#fff}.btn-warning:hover{filter:brightness(.98)}
+    .chip{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:18px;padding:1rem;transition:.18s ease;min-height:86px}
+    .chip:hover{background:#f8fbff;border-color:#bfd2e4;transform:translateY(-1px)}
+    .chip.done{background:#f8fafc;color:#475569;opacity:.82}
+    .chip.locked{opacity:.55;cursor:not-allowed}
+    .pill{border-radius:14px;padding:.15rem .45rem;font-size:.75rem;font-weight:800}
+    .progress{height:8px;width:100%;background:#dbe6f0;border-radius:999px;overflow:hidden}
+    .progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .22s ease}
+    .step-dot{width:12px;height:12px;border-radius:999px;background:#cbd5e1;flex:none;position:relative;margin-top:5px}
+    .step-dot.active{background:#2563eb;box-shadow:0 0 0 5px rgba(37,99,235,.12)}
+    .step-dot.done{background:#16a34a}
+    .overlay{position:fixed;inset:0;background:rgba(15,23,42,.68);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
+    .overlay.show{display:flex}
+    .overlay-panel{width:min(860px,100%);max-height:92vh;overflow:auto;background:#fff;border:1px solid rgba(217,226,236,.95);border-radius:28px;box-shadow:0 30px 80px rgba(15,23,42,.28);padding:20px}
+    .muted{color:var(--muted)}
+    .hidden-x{display:none!important}
+    .flash{animation:flash .32s ease-out}
+    @keyframes flash{0%{transform:scale(1)}50%{transform:scale(1.015)}100%{transform:scale(1)}}
+    @media (max-width:1024px){.sticky{position:static!important;top:auto!important}}
+    @media (max-width:640px){
+      .app{padding:10px}
+      .shell{padding:10px;border-radius:20px}
+      .card{border-radius:18px}
+      .overlay-panel{padding:16px;border-radius:20px}
+      .btn{width:100%;min-height:52px}
+    }
+  </style>
 </head>
-
-<body class="p-6">
-
-  <div class="max-w-6xl mx-auto bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-8 border border-white/40">
-
-    <!-- Presentación / Simula‑ICTUS (nuevo estilo) -->
-    <div class="rounded-2xl p-6 bg-gradient-to-br from-pink-50 via-fuchsia-50 to-sky-50 border border-sky-200 shadow">
-      <div class="flex items-center gap-5 flex-wrap">
-        <!-- Cerebro derretido (SVG) -->
-        <div class="brain">
-<svg width="220" height="220" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Brain outline -->
-  <path d="M60 80 C40 80 40 120 60 120 C60 150 100 150 100 130 C100 150 140 150 140 120 C160 120 160 80 140 80 C140 50 100 50 100 70 C100 50 60 50 60 80 Z"
-        fill="#f4b6c2" stroke="#a84c5c" stroke-width="4"/>
-  <!-- Lightning bolt (neurological deficit) -->
-  <polygon points="100,70 115,95 105,95 120,130 95,105 105,105" fill="#ffcc00" stroke="#e0a800" stroke-width="3"/>
-  <!-- Ambulance simplified -->
-  <rect x="50" y="135" width="100" height="35" rx="6" fill="#e6f2ff" stroke="#3a6ea5" stroke-width="3"/>
-  <rect x="55" y="140" width="25" height="15" fill="#ffffff" stroke="#3a6ea5" stroke-width="2"/>
-  <circle cx="80" cy="170" r="8" fill="#3a6ea5"/>
-  <circle cx="140" cy="170" r="8" fill="#3a6ea5"/>
-  <!-- Light -->
-  <rect x="135" y="130" width="15" height="6" fill="#ff3333"/>
-</svg>
-</div>
-        <div class="flex-1">
-          <h1 class="text-5xl font-extrabold text-blue-900 tracking-tight">Simula‑ICTUS <span class="text-sm text-blue-800 font-light">by Héctor Sales</span></h1>
-          <p class="mt-3 text-lg text-gray-800">
-            <strong>Bienvenido/a a Simula‑ICTUS.</strong> Tu misión es <strong>valorar y gestionar</strong> un posible caso de ictus en el <strong>menor tiempo posible</strong>.
-            Explora al paciente, revisa las constantes, los antecedentes (situación basal) y la <em>hora de inicio</em>. Después, <strong>calcula la puntuación total de la escala MADRID DIRECT</strong>
-            (sin ver los puntos por ítem) e indica si <strong>cumple</strong> o <strong>no cumple</strong> criterios de Código Ictus. Si aciertas, ¡habrás conseguido el objetivo!
-            Recuerda: <em>EL TIEMPO ES CEREBRO</em> ⏱️
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Aviso 112 -->
-    <div class="bg-blue-50 border border-blue-200 p-5 rounded-xl shadow">
-      <h2 class="font-bold text-2xl text-blue-700 mb-2">Aviso entrante del 112</h2>
-      <p id="textoCaso" class="text-blue-900 text-lg"></p>
-    </div>
-
-    <!-- Botón de inicio: Ambulancia SVG estilo SUMMA112 -->
-    
-<div class='flex justify-center gap-3 mt-2'>
- <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso1' style='background:#1e3a8a;'>Caso 1</button>
- <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso2' style='background:#047857;'>Caso 2</button>
- <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso3' style='background:#b91c1c;'>Caso 3</button>
- <button class='px-4 py-2 rounded-lg text-white font-bold' id='btnCaso4' style='background:#92400e;'>Caso 4</button>
-</div>
-
-<div class="flex flex-col items-center">
-      <button id="btnMovilizar" class="amb-btn transition p-3 rounded-xl bg-white/70 border hover:shadow-lg" aria-label="Iniciar simulación" title="Iniciar simulación">
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <div style="width: 100px; height: 60px; border: 1px solid black;">
-            <div style="height: 20px; background: red;"></div>
-            <div style="height: 20px; background: yellow;"></div>
-            <div style="height: 20px; background: red;"></div>
-          </div>
-          <div style="width: 100px; height: 60px; background: red; position: relative;">
-            <span style="position: absolute; top: 5px; left: 10px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 5px; left: 30px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 5px; left: 50px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 5px; left: 70px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 25px; left: 20px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 25px; left: 40px; color: white; font-size: 16px;">★</span>
-            <span style="position: absolute; top: 25px; left: 60px; color: white; font-size: 16px;">★</span>
-          </div>
-        </div>
-        <div style="margin-top: 10px; color: blue; font-weight: bold; text-align: center; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">SUMMA112</div>
-        <div class="mt-2 text-sm text-gray-700">Pulsa el botón para iniciar</div>
-      </button>
-    </div>
-
-    <!-- Cronómetro -->
-    <div id="cronometro" class="hidden text-center pt-2">
-      <p id="tiempo" class="text-red-600">00:00</p>
-      <p class="text-xl font-semibold text-gray-700 mt-2 tracking-wide">EL TIEMPO ES CEREBRO ⏱️</p>
-    </div>
-
-    <!-- Panel de EMOJIS -->
-    <div id="emojiPanel" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-
-      <!-- Paciente / Clínica -->
-      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
-        <div class="flex items-start gap-4">
-          <div id="btnClinica" class="emoji-btn" title="Paciente">🧑🦳</div>
-          <div class="flex-1">
-            <div class="text-lg font-bold text-gray-800">Paciente (Clínica)</div>
-            <div id="descClinica" class="text-gray-700 mt-2">
-              <em>Al pulsar, verás la <strong>sintomatología</strong> del paciente. La <strong>puntuación</strong> de Madrid Direct la debes <strong>calcular tú</strong> después, con los ítems.</em>
+<body>
+  <div class="app">
+    <div class="shell">
+      <header class="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <section class="card p-5 md:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div class="badge bg-sky-50 text-sky-800 border border-sky-200">Simulador Código ICTUS</div>
+              <h1 class="title mt-3 text-3xl md:text-5xl">Simula-ICTUS</h1>
+              <p class="mt-3 max-w-3xl text-sm md:text-base text-slate-700">
+                Valora un posible ictus con información progresiva, integra clínica, constantes, situación basal y cronología, calcula la escala <strong>Madrid Direct</strong>
+                y decide si procede activar <strong>Código Ictus</strong>. Al finalizar se resume el territorio vascular probable según la clínica del caso.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 min-w-[220px]">
+              <div class="card p-3 bg-slate-50">
+                <div class="text-[11px] uppercase tracking-wide text-slate-500">Estado</div>
+                <div id="stateLabel" class="mt-1 font-black">Listo</div>
+              </div>
+              <div class="card p-3 bg-slate-50">
+                <div class="text-[11px] uppercase tracking-wide text-slate-500">Caso</div>
+                <div id="caseLabel" class="mt-1 font-black">Sin iniciar</div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Monitor / Constantes -->
-      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
-        <div class="flex items-start gap-4">
-          <div id="btnConstantes" class="emoji-btn" title="Monitorización">📺</div>
-          <div class="flex-1">
-            <div class="text-lg font-bold text-gray-800">Monitorización (Constantes y ECG)</div>
-            <div id="descConstantes" class="text-gray-700 mt-2">
-              <em>Pulsa para ver TA, FC, SatO₂, Glucemia, Temperatura y ECG.</em>
+          <div class="mt-5 grid gap-3 md:grid-cols-3">
+            <div class="card bg-slate-50 p-4">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Objetivo</div>
+              <div class="mt-1 font-bold">Decidir bien con el menor tiempo útil</div>
+            </div>
+            <div class="card bg-slate-50 p-4">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Secuencia</div>
+              <div class="mt-1 font-bold">Aviso → Exploración → Escala → Decisión</div>
+            </div>
+            <div class="card bg-slate-50 p-4">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Formato</div>
+              <div class="mt-1 font-bold">Archivo único HTML</div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Libro / Antecedentes (Situación Basal: ABVD + Cognición) -->
-      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
-        <div class="flex items-start gap-4">
-          <div id="btnAntecedentes" class="emoji-btn" title="Antecedentes">📘</div>
-          <div class="flex-1">
-            <div class="text-lg font-bold text-gray-800">Antecedentes y situación basal</div>
-            <div id="descAntecedentes" class="text-gray-700 mt-2">
-              <em>Consulta comorbilidades y <strong>situación basal</strong> con foco en:
-              <strong>ABVD</strong> (si necesita ayuda) y <strong>Cognición</strong> (si hay deterioro o no).</em>
+        <section class="card p-5 md:p-6 bg-slate-950 text-white border-slate-900">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-xs uppercase tracking-[.18em] text-slate-400">Tiempo del caso</div>
+              <div id="timer" class="metric">00:00</div>
+            </div>
+            <div class="badge border border-slate-700 bg-slate-900 text-slate-300">El tiempo es cerebro</div>
+          </div>
+          <div class="mt-4">
+            <div class="flex items-center justify-between gap-3 text-sm text-slate-300">
+              <span>Datos clave</span>
+              <span id="progressText">0 / 4</span>
+            </div>
+            <div class="progress mt-2"><span id="progressFill"></span></div>
+          </div>
+          <div class="mt-5 grid gap-3 sm:grid-cols-3">
+            <div class="card p-4 bg-slate-900 border-slate-800 text-white">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Acciones</div>
+              <div id="actionsCount" class="mt-1 text-xl font-black">0</div>
+            </div>
+            <div class="card p-4 bg-slate-900 border-slate-800 text-white">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Puntuación</div>
+              <div id="scoreStatus" class="mt-1 text-xl font-black">Pendiente</div>
+            </div>
+            <div class="card p-4 bg-slate-900 border-slate-800 text-white">
+              <div class="text-[11px] uppercase tracking-wide text-slate-500">Decisión</div>
+              <div id="decisionStatus" class="mt-1 text-xl font-black">Pendiente</div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </header>
 
-      <!-- Reloj / Hora de inicio -->
-      <div class="bg-white/80 border border-gray-200 rounded-2xl shadow p-4">
-        <div class="flex items-start gap-4">
-          <div id="btnHora" class="emoji-btn" title="Hora de inicio">⏰</div>
-          <div class="flex-1">
-            <div class="text-lg font-bold text-gray-800">Hora de inicio de síntomas</div>
-            <div id="descHora" class="text-gray-700 mt-2">
-              <em>Pulsa para conocer la hora de inicio/última vez visto bien.</em>
+      <main class="mt-4 grid gap-4 xl:grid-cols-[1.45fr_.95fr]">
+        <section class="space-y-4">
+          <section class="card p-5 md:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="section-title">Aviso entrante del 112</h2>
+                <p id="dispatchText" class="mt-2 text-slate-700">Selecciona un caso para cargar el aviso clínico.</p>
+              </div>
+              <div id="dispatchHint" class="badge bg-amber-50 text-amber-800 border border-amber-200">Selecciona caso e inicia valoración</div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <button id="caseBtn1" class="btn btn-secondary">Caso 1</button>
+              <button id="caseBtn2" class="btn btn-secondary">Caso 2</button>
+              <button id="caseBtn3" class="btn btn-secondary">Caso 3</button>
+              <button id="caseBtn4" class="btn btn-secondary">Caso 4</button>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="startBtn" class="btn btn-primary">🚑 Iniciar valoración</button>
+              <button id="resetBtn" class="btn btn-secondary">Reiniciar caso</button>
+            </div>
+          </section>
 
-    <!-- Historial -->
-    <div id="panelInfo" class="hidden space-y-3 bg-yellow-50/70 border border-yellow-300 p-5 rounded-xl shadow-inner"></div>
+          <section class="card p-5 md:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="section-title">Exploración</h2>
+                <p class="mt-1 text-sm text-slate-600">Recoge primero la información esencial. Cada acción añade tiempo y deja un registro estructurado.</p>
+              </div>
+              <div id="stageHint" class="badge bg-slate-100 text-slate-700 border border-slate-200">Pendiente de inicio</div>
+            </div>
+            <div id="actionsGrid" class="mt-4 grid gap-3 md:grid-cols-2"></div>
+          </section>
 
-    <!-- MADRID DIRECT: Ítems (sin mostrar puntuación) -->
-    <div id="madridDirectSection" class="hidden space-y-4">
-      <h3 class="font-bold text-2xl text-blue-800">Madrid Direct (ítems)</h3>
-      <!-- Brazo -->
-      <div class="bg-white/80 rounded-xl border p-4">
-        <div class="font-semibold mb-2">Miembro superior</div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <button class="tag bg-gray-100 border" data-check="arm_msd">Vence gravedad en MSD</button>
-          <span id="arm_msd_res" class="text-sm"></span>
-          <button class="tag bg-gray-100 border" data-check="arm_msi">Vence gravedad en MSI</button>
-          <span id="arm_msi_res" class="text-sm"></span>
-        </div>
-      </div>
-      <!-- Pierna -->
-      <div class="bg-white/80 rounded-xl border p-4">
-        <div class="font-semibold mb-2">Miembro inferior</div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <button class="tag bg-gray-100 border" data-check="leg_mid">Vence gravedad en MID</button>
-          <span id="leg_mid_res" class="text-sm"></span>
-          <button class="tag bg-gray-100 border" data-check="leg_mii">Vence gravedad en MII</button>
-          <span id="leg_mii_res" class="text-sm"></span>
-        </div>
-      </div>
-      <!-- Mirada -->
-      <div class="bg-white/80 rounded-xl border p-4">
-        <div class="font-semibold mb-2">Mirada</div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <button class="tag bg-gray-100 border" data-check="gaze">¿Hay desviación de la mirada?</button>
-          <span id="gaze_res" class="text-sm"></span>
-        </div>
-      </div>
-      <!-- Órdenes / Reconocimiento -->
-      <div class="bg-white/80 rounded-xl border p-4">
-        <div class="font-semibold mb-2">Órdenes / Reconocimiento del déficit</div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <button class="tag bg-gray-100 border" data-check="obey">¿Obedece órdenes sencillas?</button>
-          <span id="obey_res" class="text-sm"></span>
-          <button class="tag bg-gray-100 border" data-check="recognize" id="btnRecognize">¿Reconoce el déficit?</button>
-          <span id="recognize_res" class="text-sm"></span>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Nota: si <strong>no obedece</strong>, el reconocimiento del déficit <em>no es valorable</em>.</p>
-      </div>
+          <section id="scaleSection" class="card p-5 md:p-6 hidden-x">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="section-title">Madrid Direct y decisión</h2>
+                <p class="mt-1 text-sm text-slate-600">Explora los ítems, introduce la puntuación total y decide si procede activar Código Ictus.</p>
+              </div>
+              <div class="badge bg-indigo-50 text-indigo-800 border border-indigo-200">Se activa al completar los 4 datos clave</div>
+            </div>
 
-      <!-- Validación por número (informativa) -->
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <label class="font-semibold text-xl">Introduce la <u>puntuación total</u> de MADRID DIRECT (sin ver la puntuación de cada ítem):</label>
-        <div class="mt-2 flex gap-2 items-center">
-          <input id="inputMadrid" type="number" class="border p-3 w-40 rounded-xl shadow text-lg" placeholder="número"/>
-          <button id="btnValidarMadrid" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl shadow font-bold">Validar puntuación</button>
-          <span id="msgMadrid" class="text-lg ml-2"></span>
-        </div>
-      </div>
+            <div class="mt-4 grid gap-4">
+              <div class="card p-4">
+                <div class="font-bold">1) Ítems de Madrid Direct</div>
+                <div id="mdItems" class="mt-3 grid gap-3 md:grid-cols-2"></div>
+              </div>
 
-      <!-- DECISIÓN: Cumple / NO cumple -->
-      <div class="bg-white/80 border rounded-xl p-4">
-        <div class="font-bold text-lg mb-2">¿Crees que <span class="underline">cumple</span> criterios de Código Ictus?</div>
-        <div class="flex flex-wrap gap-3">
-          <button id="btnCumple" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold">✅ Cumple criterios</button>
-          <button id="btnNoCumple" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg font-semibold">❌ NO cumple criterios</button>
-        </div>
-        <p class="text-sm text-gray-600 mt-2">Selecciona una opción. Si aciertas, ¡CONSEGUIDO!; si no, GAME OVER.</p>
-      </div>
-    </div>
+              <div class="card p-4">
+                <div class="font-bold">2) Introduce la puntuación total</div>
+                <div class="mt-3 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+                  <input id="scoreInput" type="number" class="w-full sm:w-40 rounded-2xl border border-slate-300 px-4 py-3 text-lg font-bold outline-none focus:border-sky-500" placeholder="Ej. 2" />
+                  <button id="validateBtn" class="btn btn-primary sm:w-auto">Validar puntuación</button>
+                  <div id="scoreFeedback" class="text-sm font-semibold text-slate-700"></div>
+                </div>
+              </div>
 
-    <!-- Botón: Gestionar Alerta hospitalaria -->
-    <button id="btnAlerta" class="hidden bg-purple-600 hover:bg-purple-700 text-white px-4 py-4 rounded-xl w-full text-xl font-bold shadow-xl">
-      Gestionar Alerta hospitalaria (+5:00)
-    </button>
+              <div class="card p-4">
+                <div class="font-bold">3) Decide</div>
+                <p class="mt-1 text-sm text-slate-600">Tras validar la puntuación, decide si cumple criterios. Si procede, completa la alerta hospitalaria.</p>
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                  <button id="yesBtn" class="btn btn-success">✅ Cumple criterios</button>
+                  <button id="noBtn" class="btn btn-danger">❌ No cumple criterios</button>
+                </div>
+                <div id="alertWrap" class="mt-4 hidden-x">
+                  <button id="alertBtn" class="btn btn-warning w-full">📡 Gestionar alerta hospitalaria (+1:30)</button>
+                </div>
+                <div id="decisionFeedback" class="mt-3 text-sm font-semibold text-slate-700"></div>
+              </div>
+            </div>
+          </section>
+        </section>
 
-    <!-- Destino -->
-    <div id="destinoHospital" class="hidden bg-green-100 border border-green-300 p-5 rounded-xl shadow text-center">
-      <p id="textoDestino" class="font-semibold text-green-800 text-2xl"></p>
-      <p class="italic text-lg mt-1 text-green-700">Simulacro finalizado</p>
-    </div>
+        <aside class="space-y-4 sticky" style="position:sticky;top:16px;">
+          <section class="card p-5">
+            <h2 class="section-title">Ruta del caso</h2>
+            <div class="mt-4 space-y-4">
+              <div class="flex gap-3"><div id="step-brief" class="step-dot active"></div><div><div class="font-semibold">Aviso</div><div class="text-sm text-slate-600">Selecciona el caso y arranca.</div></div></div>
+              <div class="flex gap-3"><div id="step-assess" class="step-dot"></div><div><div class="font-semibold">Exploración</div><div class="text-sm text-slate-600">Clínica, constantes, basal y cronología.</div></div></div>
+              <div class="flex gap-3"><div id="step-scale" class="step-dot"></div><div><div class="font-semibold">Escala</div><div class="text-sm text-slate-600">Integra Madrid Direct.</div></div></div>
+              <div class="flex gap-3"><div id="step-decision" class="step-dot"></div><div><div class="font-semibold">Decisión</div><div class="text-sm text-slate-600">Código Ictus sí o no.</div></div></div>
+              <div class="flex gap-3"><div id="step-review" class="step-dot"></div><div><div class="font-semibold">Debriefing</div><div class="text-sm text-slate-600">Territorio probable y explicación.</div></div></div>
+            </div>
+          </section>
 
-    <!-- Créditos discretos -->
-    <div class="text-[11px] text-gray-500 text-right pt-2"><strong>
-      Simula ICTUS by Héctor Sales • desarrollado con apoyo de M365 Copilot - Aplicación para formación de la Comisión de Neurología SUMMA112<br>
-      Hector.sales@salud.madrid.org
-    </strong></div>
-  </div>
+          <section class="card p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="section-title">Hallazgos</h2>
+                <p class="mt-1 text-sm text-slate-600">Resumen estructurado de lo ya obtenido.</p>
+              </div>
+              <div id="summaryBadge" class="badge bg-slate-100 text-slate-700 border border-slate-200">0 registros</div>
+            </div>
+            <div id="summaryList" class="mt-4 space-y-3">
+              <div class="card p-4 text-sm text-slate-500">Aún no hay datos recogidos.</div>
+            </div>
+          </section>
 
-  <!-- GAME OVER Overlay -->
-  <div id="gameOverOverlay" class="flex">
-    <div class="text-center">
-      <div class="go-text">GAME OVER</div>
-      <div class="go-sub" id="goMsg">Has fallado en la decisión.</div>
-      <div class="go-actions">
-        <button id="btnReiniciarGO" class="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold">🔄 Iniciar nuevo caso</button>
-      </div>
+          <section class="card p-5">
+            <h2 class="section-title">Claves</h2>
+            <ul class="mt-4 space-y-2 text-sm text-slate-700">
+              <li>• La clínica debe permitir inferir lateralidad y patrón topográfico.</li>
+              <li>• La glucemia puede cambiar por completo la interpretación del caso.</li>
+              <li>• La última vez visto bien no es un dato decorativo.</li>
+              <li>• La decisión final se apoya en clínica, basal, tiempo y escala.</li>
+            </ul>
+          </section>
+        </aside>
+      </main>
     </div>
   </div>
 
-  <!-- SUCCESS Overlay -->
-  <div id="successOverlay" class="flex">
-    <div class="text-center">
-      <div class="ok-text">¡CONSEGUIDO!</div>
-      <div class="ok-sub" id="okMsg">Tiempo total: 00:00</div>
-      <div class="go-actions">
-        <button id="btnReiniciarOK" class="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold">🔄 Iniciar nuevo caso</button>
+  <div id="overlay" class="overlay">
+    <div class="overlay-panel">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div id="overlayBadge" class="badge bg-slate-100 text-slate-700 border border-slate-200">Resultado</div>
+          <h3 id="overlayTitle" class="mt-3 text-2xl md:text-4xl font-black tracking-tight">Caso finalizado</h3>
+          <p id="overlaySubtitle" class="mt-2 text-sm md:text-base text-slate-600">Resumen del caso.</p>
+        </div>
+        <div class="card bg-slate-50 p-4">
+          <div class="text-[11px] uppercase tracking-wide text-slate-500">Tiempo final</div>
+          <div id="overlayTime" class="mt-1 text-2xl font-black">00:00</div>
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-4 lg:grid-cols-[.9fr_1.1fr]">
+        <div class="card bg-slate-50 p-4">
+          <div class="font-bold">Resultado esperado</div>
+          <div id="expectedBlock" class="mt-3 text-sm text-slate-700"></div>
+          <div class="mt-4 font-bold">Territorio vascular probable</div>
+          <div id="territoryBlock" class="mt-2 text-sm text-slate-700"></div>
+          <div class="mt-4 font-bold">Puntos clave del caso</div>
+          <ul id="keyPoints" class="mt-2 space-y-2 text-sm text-slate-700"></ul>
+        </div>
+        <div class="card p-4">
+          <div class="font-bold">Debriefing docente</div>
+          <div id="teachingBlock" class="mt-3 text-sm md:text-base leading-7 text-slate-700"></div>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <button id="retryBtn" class="btn btn-primary">🔄 Repetir caso</button>
+            <button id="closeBtn" class="btn btn-secondary">Cerrar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
 <script>
-/* ==========================
-   Estado general
-   ========================== */
-let segundos = 0;
-let intervalo = null;
-let accionesRealizadas = 0;
-let simulacroFinalizado = false;
+(() => {
+  const CASES = [
+    {
+      id:'case-1',
+      label:'Caso 1',
+      dispatch:'Paciente de 75 años. Inicio brusco de alteración del lenguaje y pérdida de fuerza en hemicuerpo derecho. Acompañante disponible.',
+      age:75,
+      info:{
+        clinic:'Paciente despierto. Comprende órdenes sencillas. Lenguaje alterado con afasia motora. Asimetría facial central derecha. Debilidad en brazo y pierna derechos, más evidente en pierna. Sin desviación conjugada de la mirada. Reconoce que no puede mover bien el lado derecho.',
+        vitals:'TA 175/89 mmHg • FC 125 lpm en fibrilación auricular • SatO₂ 96% • Glucemia 96 mg/dL • Temperatura 36.9 °C • ECG compatible con FA.',
+        background:'HTA, dislipemia, exfumador. Deterioro cognitivo leve. Independiente para ABVD básicas, con apoyo parcial para actividades instrumentales.',
+        onset:'Inicio hace 4 horas. Última vez visto bien conocida y fiable.',
+      },
+      neuro:{
+        armWeak:'MSD',
+        legWeak:'MID',
+        gaze:false,
+        obey:true,
+        recognize:true,
+      },
+      md:{arm:1,leg:1,gaze:0,noObey:0,recNo:0,pas:175},
+      expectedCode:true,
+      destination:'Unidad de Ictus',
+      territory:'Hemisferio izquierdo, probable territorio de arteria cerebral media izquierda (rama superior o corticosubcortical anterior según el predominio afásico con hemiparesia contralateral).',
+      keyPoints:[
+        'Afasia + hemiparesia derecha lateralizan a hemisferio izquierdo.',
+        'Afectación de brazo y pierna derechas: la clínica permite marcar déficit en MSD y MID.',
+        'No hay desviación de la mirada.',
+        'FA y ventana temporal conocida aumentan la sospecha de ictus isquémico embolígeno.'
+      ],
+      teaching:'La combinación de afasia, asimetría facial central y hemiparesia derecha localiza el evento en hemisferio izquierdo. En este caso la clínica sí permite inferir que hay afectación tanto de miembro superior como inferior derechos, aunque el predominio sea mayor en pierna. La ausencia de desviación de la mirada y la obediencia conservada evitan sumar esos ítems. El contexto de fibrilación auricular y una última vez visto bien conocida refuerzan el razonamiento hacia un ictus isquémico en territorio carotídeo izquierdo con activación de Código Ictus.'
+    },
+    {
+      id:'case-2',
+      label:'Caso 2',
+      dispatch:'Paciente de 85 años. Inicio súbito de déficit neurológico grave con caída al suelo y lenguaje incomprensible.',
+      age:85,
+      info:{
+        clinic:'Paciente vigil pero no obedece órdenes sencillas. Afasia global. Desviación conjugada de la mirada hacia la derecha. Hemiplejia izquierda completa con caída de brazo y pierna izquierdos. No reconoce el déficit por imposibilidad de exploración útil al no obedecer.',
+        vitals:'TA 112/58 mmHg • FC 85 lpm en ritmo sinusal • SatO₂ 97% • Glucemia 72 mg/dL • Temperatura 35.5 °C • ECG sin cambios agudos relevantes.',
+        background:'HTA, DM2, dislipemia. Deterioro cognitivo leve previo. Dependencia parcial para algunas actividades básicas.',
+        onset:'Se despierta así. Última vez visto bien antes de acostarse hace aproximadamente 10 horas.',
+      },
+      neuro:{armWeak:'MSI',legWeak:'MII',gaze:true,obey:false,recognize:null},
+      md:{arm:1,leg:1,gaze:1,noObey:1,recNo:1,pas:112},
+      expectedCode:true,
+      destination:'Unidad de Ictus',
+      territory:'Hemisferio derecho o izquierdo según dominancia del lenguaje descrita; por la combinación de desviación de la mirada, hemiplejia completa y afasia global, el cuadro sugiere gran vaso del territorio de arteria cerebral media, en este caso clínicamente más compatible con hemisferio izquierdo si se interpreta la afasia como cortical dominante.',
+      keyPoints:[
+        'Desviación de la mirada + hemiplejia completa + trastorno cortical grave sugieren oclusión proximal de gran vaso.',
+        'Al no obedecer órdenes, el reconocimiento del déficit no es valorable.',
+        'La ventana tipo wake-up stroke no excluye por sí misma la activación del circuito.',
+        'La edad resta puntos en la escala, pero no anula la sospecha clínica.'
+      ],
+      teaching:'Este caso está construido para representar un ictus grave de gran vaso. La mirada desviada, la hemiplejia completa y la alteración cortical severa son el núcleo del razonamiento. En la escala, si el paciente no obedece órdenes sencillas, el ítem de reconocimiento del déficit deja de ser valorable y no debe usarse como si aportara información independiente. La situación de wake-up stroke obliga a integrar cronología y circuito asistencial, pero no convierte el caso en un no-código por sí sola.'
+    },
+    {
+      id:'case-3',
+      label:'Caso 3',
+      dispatch:'Paciente de 58 años. Alteración del habla y conducta extraña de inicio reciente. Familiar refiere torpeza en extremidades.',
+      age:58,
+      info:{
+        clinic:'Paciente confuso, con disartria y atención fluctuante. Obedece de forma irregular al inicio, sin afasia estructurada clara. No hay desviación conjugada de la mirada. Presenta torpeza en hemicuerpo izquierdo sin una hemiparesia densa claramente establecida.',
+        vitals:'TA 155/82 mmHg • FC 95 lpm en ritmo sinusal • SatO₂ 98% • Glucemia 30 mg/dL • Temperatura 36.9 °C • ECG sin hallazgos agudos.',
+        background:'DM1 e HTA. Independiente para ABVD. Sin deterioro cognitivo basal.',
+        onset:'Inicio hace 30 minutos según la familia.',
+      },
+      neuro:{armWeak:'MSI',legWeak:'MII',gaze:false,obey:false,recognize:null},
+      md:{arm:1,leg:1,gaze:0,noObey:1,recNo:0,pas:155},
+      expectedCode:false,
+      destination:'Corrección metabólica / reevaluación',
+      territory:'No se concluye un territorio vascular fiable de entrada porque existe una hipoglucemia severa capaz de justificar por sí sola el cuadro neurológico focal aparente.',
+      keyPoints:[
+        'La glucemia de 30 mg/dL obliga a pensar primero en imitador de ictus.',
+        'La focalidad puede ser engañosa mientras persista la hipoglucemia.',
+        'Antes de etiquetar un territorio arterial hay que corregir el trastorno metabólico y reevaluar.',
+        'La cronología es aguda, pero el dato crítico no es el reloj sino la glucemia.'
+      ],
+      teaching:'Este caso no está diseñado como un ictus confirmado, sino como un imitador potencialmente muy convincente. La hipoglucemia severa puede generar disartria, conducta extraña, obediencia irregular e incluso focalidad aparente. La lección principal no es memorizar una puntuación, sino priorizar el dato que cambia la interpretación completa del caso. Primero se corrige el trastorno metabólico y después se reevalúa la clínica; antes de eso, no es seguro adjudicar territorio vascular ni activar un código como si la hipótesis metabólica no existiera.'
+    },
+    {
+      id:'case-4',
+      label:'Caso 4',
+      dispatch:'Paciente de 66 años. Inicio agudo de inestabilidad intensa, vómitos y dificultad para coordinar movimientos.',
+      age:66,
+      info:{
+        clinic:'Paciente consciente. Disartria leve. Nistagmo. Ataxia apendicular y de la marcha. Dismetría izquierda. Sin hemiparesia franca en brazo ni pierna. Sin desviación de la mirada conjugada. Obedece órdenes y reconoce la alteración.',
+        vitals:'TA 169/90 mmHg • FC 88 lpm en ritmo sinusal • SatO₂ 97% • Glucemia 110 mg/dL • Temperatura 36.6 °C • ECG sin alteraciones agudas.',
+        background:'HTA y dislipemia. Independiente para ABVD. Sin deterioro cognitivo basal.',
+        onset:'Inicio hace 1 hora con progresión en minutos.',
+      },
+      neuro:{armWeak:null,legWeak:null,gaze:false,obey:true,recognize:true},
+      md:{arm:0,leg:0,gaze:0,noObey:0,recNo:0,pas:169},
+      expectedCode:true,
+      destination:'Hospital con capacidad para ictus / valoración neurológica urgente',
+      territory:'Circulación posterior, probable territorio vertebrobasilar o cerebeloso, compatible con afectación cerebelosa izquierda por la dismetría lateralizada.',
+      keyPoints:[
+        'La ausencia de hemiparesia no excluye un ictus de circulación posterior.',
+        'Ataxia, nistagmo, vómitos y disartria orientan a territorio vertebrobasilar/cerebeloso.',
+        'Madrid Direct puede ser baja y aun así el caso seguir siendo clínicamente preocupante.',
+        'La topografía posterior exige no sobreconfiar en escalas centradas en gran vaso anterior.'
+      ],
+      teaching:'Este caso enseña justo lo que suele escaparse cuando se usa una escala como si fuera toda la neurología. La clínica cerebelosa aguda con nistagmo, ataxia y dismetría puede corresponder a un ictus de circulación posterior aunque no haya hemiparesia ni una puntuación alta en Madrid Direct. Por eso el razonamiento final debe integrar el patrón topográfico y no limitarse a sumar puntos. La sospecha de territorio vertebrobasilar o cerebeloso mantiene la necesidad de derivación urgente y valoración especializada.'
+    }
+  ];
 
-let currentCase = null;
-let correctMadrid = 0;
+  const ACTIONS = [
+    {id:'clinic',label:'🧑 Clínica neurológica',time:120,summary:'Clínica neurológica',getText:(c)=>c.info.clinic},
+    {id:'vitals',label:'📺 Constantes y ECG',time:90,summary:'Constantes',getText:(c)=>c.info.vitals},
+    {id:'background',label:'📘 Antecedentes y situación basal',time:75,summary:'Basal',getText:(c)=>c.info.background},
+    {id:'onset',label:'⏰ Hora de inicio / última vez visto bien',time:60,summary:'Cronología',getText:(c)=>c.info.onset},
+  ];
 
-let weakArmSide = null; // 'MSD' o 'MSI' si hay déficit de brazo
-let weakLegSide = null; // 'MID' o 'MII' si hay déficit de pierna
+  const MD_ITEMS = [
+    {id:'arm_msd',label:'Vence gravedad en MSD'},
+    {id:'arm_msi',label:'Vence gravedad en MSI'},
+    {id:'leg_mid',label:'Vence gravedad en MID'},
+    {id:'leg_mii',label:'Vence gravedad en MII'},
+    {id:'gaze',label:'¿Hay desviación de la mirada?'},
+    {id:'obey',label:'¿Obedece órdenes sencillas?'},
+    {id:'recognize',label:'¿Reconoce el déficit?'}
+  ];
 
-/* ==========================
-   Casos aleatorios
-   (incluye NO‑Código por basal con hemiplejia completa coherente)
-   ========================== */
-const casos = [
-    {tipo:'Caso 1',aviso:(edad)=>`Paciente de 75 años con síntomas neurológicos.`,edad:75,clinicaTexto:`Comprensión adecuada con alteración del lenguaje, hemiparesia derecha más en pierna.`,antecedentes:`HTA, DL, exfumador, deterioro cognitivo leve, IABVD`,constantes:`TA175/89 FC125 FA Glu96 Temp36.9`,hora:`Hace 4 horas`,md:{arm:1,leg:1,gaze:0,noObey:0,recNo:0,pas:175},cumpleCodigo:true,destino:'Unidad ICTUS'},
-    {tipo:'Caso 2',aviso:(edad)=>`Paciente de 85 años con clínica grave.`,edad:85,clinicaTexto:`Hemiplejia izquierda, mirada fija derecha, afasia global.`,antecedentes:`HTA, DM2, DL, deterioro cognitivo leve, dependencia parcial`,constantes:`TA112/58 RS85 Glu72 Temp35.5`,hora:`Despertar hace 10h`,md:{arm:1,leg:1,gaze:1,noObey:1,recNo:1,pas:112},cumpleCodigo:true,destino:'Unidad ICTUS'},
-    {tipo:'Caso 3',aviso:(edad)=>`Paciente de 58 años con alteración conductual.`,edad:58,clinicaTexto:`Disartria, desatención, obediencia irregular.`,antecedentes:`DM1, HTA, IABVD`,constantes:`TA155/82 RS95 Glu30 Temp36.9`,hora:`30 minutos`,md:{arm:1,leg:1,gaze:0,noObey:1,recNo:0,pas:155},cumpleCodigo:false,destino:'NINGUNO'},
-    {tipo:'Caso 4',aviso:(edad)=>`Paciente con clínica cerebelosa.`,edad:66,clinicaTexto:`Ataxia, nistagmo, dismetría, inestabilidad.`,antecedentes:`HTA, DL`,constantes:`TA169/90 RS88 Glu110 Temp36.6`,hora:`1 hora evolución`,md:{arm:0,leg:0,gaze:0,noObey:0,recNo:0,pas:169},cumpleCodigo:true,destino:'Unidad ICTUS'}
-];
+  const state = {
+    seconds:0,
+    interval:null,
+    phase:'brief',
+    caseIndex:0,
+    currentCase:CASES[0],
+    actionsDone:new Set(),
+    summary:[],
+    mdAnswers:{},
+    scoreValidated:false,
+    decisionTaken:false,
+    alertDone:false,
+    finalShown:false,
+  };
 
-/* ==========================
-   Tiempo
-   ========================== */
-function formatearTiempo(seg){ const m=String(Math.floor(seg/60)).padStart(2,'0'); const s=String(seg%60).padStart(2,'0'); return `${m}:${s}`; }
-function actualizarTiempo(){ document.getElementById("tiempo").textContent = formatearTiempo(segundos); }
-function flashTiempo(){ const c=document.getElementById("cronometro"); c.classList.add("flash"); setTimeout(()=>c.classList.remove("flash"),400); }
-function iniciarCronometro(){
-  if(intervalo) clearInterval(intervalo);
-  intervalo = setInterval(()=>{
-    if(simulacroFinalizado) return;
-    segundos++; actualizarTiempo();
-  },1000);
-}
-function pararCronometro(){ simulacroFinalizado = true; if(intervalo){ clearInterval(intervalo); intervalo=null; } }
+  const $ = (id) => document.getElementById(id);
 
-/* ==========================
-   Cálculo "oculto" de Madrid DIRECT
-   ========================== */
-function calcMadridFromCase(c) {
-  let p = 0;
-  p += c.md.arm;
-  p += c.md.leg;
-  p += c.md.gaze;
-  if(c.md.noObey===1){ p += 1; } else { if(c.md.recNo===1) p += 1; }
-  const pas = c.md.pas;
-  if(pas>=180 && pas<=189) p -= 1;
-  else if(pas>=190 && pas<=199) p -= 2;
-  else if(pas>=200 && pas<=209) p -= 3;
-  else if(pas>209) p -= 4;
-  if(c.edad >= 85) p -= (c.edad - 85);
-  return p;
-}
+  function formatTime(total){
+    const m = String(Math.floor(total/60)).padStart(2,'0');
+    const s = String(total%60).padStart(2,'0');
+    return `${m}:${s}`;
+  }
 
-/* ==========================
-   UI helpers
-   ========================== */
-function resetUI(){
-  pararCronometro(); simulacroFinalizado=false; segundos=0; actualizarTiempo();
-  document.getElementById("tiempo").classList.remove("finalizado");
+  function calcMadrid(c){
+    let p = 0;
+    p += c.md.arm;
+    p += c.md.leg;
+    p += c.md.gaze;
+    if(c.md.noObey===1) p += 1;
+    else if(c.md.recNo===1) p += 1;
+    const pas = c.md.pas;
+    if(pas>=180 && pas<=189) p -= 1;
+    else if(pas>=190 && pas<=199) p -= 2;
+    else if(pas>=200 && pas<=209) p -= 3;
+    else if(pas>209) p -= 4;
+    if(c.age >= 85) p -= (c.age - 85);
+    return p;
+  }
 
-  document.getElementById("btnMovilizar").classList.remove("hidden");
-  document.getElementById("cronometro").classList.add("hidden");
-  document.getElementById("emojiPanel").classList.add("hidden");
-  document.getElementById("panelInfo").classList.add("hidden");
-  document.getElementById("madridDirectSection").classList.add("hidden");
-  document.getElementById("btnAlerta").classList.add("hidden");
-  document.getElementById("destinoHospital").classList.add("hidden");
-  document.getElementById("textoDestino").textContent = "";
+  function startTimer(){
+    stopTimer();
+    state.interval = setInterval(() => {
+      state.seconds += 1;
+      renderTimer();
+    }, 1000);
+  }
 
-  document.getElementById("descClinica").innerHTML = `<em>Al pulsar, verás la <strong>sintomatología</strong> del paciente. La <strong>puntuación</strong> de Madrid Direct la debes <strong>calcular tú</strong> después, con los ítems.</em>`;
-  document.getElementById("descConstantes").innerHTML = `<em>Pulsa para ver TA, FC, SatO₂, Glucemia, Temperatura y ECG.</em>`;
-  document.getElementById("descAntecedentes").innerHTML = `<em>Consulta comorbilidades y <strong>situación basal</strong> (ABVD, Cognición).</em>`;
-  document.getElementById("descHora").innerHTML = `<em>Pulsa para conocer la hora de inicio/última vez visto bien.</em>`;
+  function stopTimer(){
+    if(state.interval){ clearInterval(state.interval); state.interval = null; }
+  }
 
-  ["btnClinica","btnConstantes","btnAntecedentes","btnHora"].forEach(id=>{
-    const el = document.getElementById(id);
-    el.classList.remove("emoji-disabled"); el.dataset.done="0";
-  });
+  function addPenalty(sec){
+    state.seconds += sec;
+    $('timer').classList.add('flash');
+    setTimeout(() => $('timer').classList.remove('flash'), 250);
+    renderTimer();
+  }
 
-  document.getElementById("panelInfo").innerHTML = "";
-  document.getElementById("inputMadrid").value="";
-  document.getElementById("msgMadrid").textContent="";
-  ["arm_msd_res","arm_msi_res","leg_mid_res","leg_mii_res","gaze_res","obey_res","recognize_res"].forEach(id=>{
-    document.getElementById(id).textContent = "";
-  });
+  function renderTimer(){ $('timer').textContent = formatTime(state.seconds); $('overlayTime').textContent = formatTime(state.seconds); }
 
-  document.getElementById("gameOverOverlay").style.display = "none";
-  document.getElementById("successOverlay").style.display = "none";
+  function setPhase(phase){
+    state.phase = phase;
+    const map = ['brief','assess','scale','decision','review'];
+    map.forEach((name) => {
+      const el = $(`step-${name}`);
+      el.classList.remove('active','done');
+      if(map.indexOf(name) < map.indexOf(phase)) el.classList.add('done');
+      else if(name === phase) el.classList.add('active');
+    });
 
-  accionesRealizadas = 0;
-}
+    const labels = {
+      brief:'Listo',
+      assess:'En valoración',
+      scale:'Escala activa',
+      decision:'Decisión clínica',
+      review:'Finalizado'
+    };
+    $('stateLabel').textContent = labels[phase] || 'Listo';
+  }
 
-function seleccionarCasoAleatorio(){
-  const idx = Math.floor(Math.random()*casos.length);
-  currentCase = casos[idx];
+  function loadCase(index){
+    state.caseIndex = index;
+    state.currentCase = CASES[index];
+    resetCase(false);
+  }
 
-  weakArmSide = null; weakLegSide = null;
-
-  // Lateralidad coherente para hemiplejia completa
-  if(currentCase.md.arm===1 && currentCase.md.leg===1 && currentCase.fixedWeakSide){
-    if(currentCase.fixedWeakSide === "derecha"){
-      weakArmSide = 'MSD'; weakLegSide = 'MID';
+  function resetCase(preserveCase=true){
+    if(!preserveCase) {
+      // keep selected case already assigned
     } else {
-      weakArmSide = 'MSI'; weakLegSide = 'MII';
+      state.currentCase = CASES[state.caseIndex];
     }
-  } else {
-    if(currentCase.md.arm===1){
-      weakArmSide = Math.random() < 0.5 ? 'MSD' : 'MSI';
+    stopTimer();
+    state.seconds = 0;
+    state.actionsDone = new Set();
+    state.summary = [];
+    state.mdAnswers = {};
+    state.scoreValidated = false;
+    state.decisionTaken = false;
+    state.alertDone = false;
+    state.finalShown = false;
+    $('dispatchText').textContent = state.currentCase.dispatch;
+    $('caseLabel').textContent = state.currentCase.label;
+    $('dispatchHint').textContent = 'Selecciona caso e inicia valoración';
+    $('stageHint').textContent = 'Pendiente de inicio';
+    $('scoreInput').value = '';
+    $('scoreFeedback').textContent = '';
+    $('decisionFeedback').textContent = '';
+    $('decisionStatus').textContent = 'Pendiente';
+    $('scoreStatus').textContent = 'Pendiente';
+    $('alertWrap').classList.add('hidden-x');
+    $('scaleSection').classList.add('hidden-x');
+    renderTimer();
+    renderActions();
+    renderSummary();
+    renderProgress();
+    renderMdItems();
+    setPhase('brief');
+    $('overlay').classList.remove('show');
+  }
+
+  function startCase(){
+    if(state.phase !== 'brief') return;
+    setPhase('assess');
+    $('dispatchHint').textContent = 'Valoración en curso';
+    $('stageHint').textContent = 'Recoge los 4 datos clave';
+    startTimer();
+    renderActions();
+  }
+
+  function renderActions(){
+    const started = state.phase !== 'brief';
+    $('actionsGrid').innerHTML = ACTIONS.map(action => {
+      const done = state.actionsDone.has(action.id);
+      const cls = done ? 'chip done' : !started ? 'chip locked' : 'chip';
+      return `
+        <button class="${cls}" data-action="${action.id}" ${(!started || done) ? 'disabled' : ''}>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-bold text-slate-900">${action.label}</div>
+              <div class="mt-2 text-sm text-slate-600">${done ? 'Información recogida' : `Coste temporal +${formatTime(action.time)}`}</div>
+            </div>
+            <span class="pill ${done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}">${done ? 'Hecho' : 'Pendiente'}</span>
+          </div>
+        </button>`;
+    }).join('');
+
+    document.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => runAction(btn.dataset.action));
+    });
+  }
+
+  function runAction(actionId){
+    if(state.actionsDone.has(actionId)) return;
+    const action = ACTIONS.find(a => a.id === actionId);
+    state.actionsDone.add(actionId);
+    addPenalty(action.time);
+    state.summary.push({
+      title: action.summary,
+      text: action.getText(state.currentCase)
+    });
+    $('actionsCount').textContent = String(state.actionsDone.size);
+    renderSummary();
+    renderActions();
+    renderProgress();
+    if(state.actionsDone.size === 4){
+      $('scaleSection').classList.remove('hidden-x');
+      setPhase('scale');
+      $('stageHint').textContent = 'Escala y decisión disponibles';
+      $('dispatchHint').textContent = 'Información esencial completada';
+      window.scrollTo({top: $('scaleSection').getBoundingClientRect().top + window.scrollY - 20, behavior:'smooth'});
     }
-    if(currentCase.md.leg===1){
-      weakLegSide = Math.random() < 0.5 ? 'MID' : 'MII';
+  }
+
+  function renderSummary(){
+    $('summaryBadge').textContent = `${state.summary.length} registros`;
+    if(state.summary.length === 0){
+      $('summaryList').innerHTML = '<div class="card p-4 text-sm text-slate-500">Aún no hay datos recogidos.</div>';
+      return;
+    }
+    $('summaryList').innerHTML = state.summary.map(item => `
+      <div class="card p-4">
+        <div class="font-bold text-slate-900">${item.title}</div>
+        <div class="mt-2 text-sm leading-6 text-slate-700">${item.text}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderProgress(){
+    const done = state.actionsDone.size;
+    $('progressText').textContent = `${done} / 4`;
+    $('progressFill').style.width = `${(done/4)*100}%`;
+  }
+
+  function answerFor(itemId, c){
+    switch(itemId){
+      case 'arm_msd': return c.neuro.armWeak !== 'MSD';
+      case 'arm_msi': return c.neuro.armWeak !== 'MSI';
+      case 'leg_mid': return c.neuro.legWeak !== 'MID';
+      case 'leg_mii': return c.neuro.legWeak !== 'MII';
+      case 'gaze': return c.neuro.gaze;
+      case 'obey': return c.neuro.obey;
+      case 'recognize': return c.neuro.obey ? c.neuro.recognize : null;
+      default: return null;
     }
   }
 
-  document.getElementById("textoCaso").textContent = currentCase.aviso(currentCase.edad);
-  correctMadrid = calcMadridFromCase(currentCase);
-}
-
-
-
-/* ==========================
-   Registrar acciones (emojis)
-   ========================== */
-
-function registrarAccionHTML(desc, targetId, emojiBtn){
- const panel=document.getElementById('panelInfo');
- panel.classList.remove('hidden');
- document.getElementById(targetId).innerHTML=desc;
- const bloque=document.createElement('div');
- bloque.className='bg-white p-4 rounded-xl border shadow';
- bloque.innerHTML=desc;
- panel.appendChild(bloque);
- if(targetId==='descClinica') segundos+=240;
- else if(targetId==='descConstantes') segundos+=180;
- else segundos+=90;
- actualizarTiempo(); flashTiempo();
- if(emojiBtn && emojiBtn.dataset && emojiBtn.dataset.done!=='1'){
-   emojiBtn.dataset.done='1';
-   emojiBtn.classList.add('emoji-disabled');
-   accionesRealizadas++;
- }
- if(accionesRealizadas>=4){
-   document.getElementById('madridDirectSection').classList.remove('hidden');
- }
-}
-/* ==========================
-   Ítems (sin puntos)
-   ========================== */
-function setItemResult(spanId, okText, badText, isOK){
-  const el = document.getElementById(spanId);
-  el.textContent = isOK ? okText : badText;
-  el.className = isOK ? "text-green-700 font-semibold" : "text-red-700 font-semibold";
-}
-
-function handleCheck(tag){
-  switch(tag){
-    case 'arm_msd':
-      if(weakArmSide===null){ setItemResult('arm_msd_res',"Sí","No",true); }
-      else setItemResult('arm_msd_res',"Sí","No", weakArmSide!=='MSD');
-      break;
-    case 'arm_msi':
-      if(weakArmSide===null){ setItemResult('arm_msi_res',"Sí","No",true); }
-      else setItemResult('arm_msi_res',"Sí","No", weakArmSide!=='MSI');
-      break;
-    case 'leg_mid':
-      if(weakLegSide===null){ setItemResult('leg_mid_res',"Sí","No",true); }
-      else setItemResult('leg_mid_res',"Sí","No", weakLegSide!=='MID');
-      break;
-    case 'leg_mii':
-      if(weakLegSide===null){ setItemResult('leg_mii_res',"Sí","No",true); }
-      else setItemResult('leg_mii_res',"Sí","No", weakLegSide!=='MII');
-      break;
-    case 'gaze':
-      setItemResult('gaze_res',"Sí","No", currentCase.md.gaze===0 ? false : true);
-      break;
-    case 'obey':
-      setItemResult('obey_res',"Sí","No", currentCase.md.noObey===1 ? false : true);
-      if(currentCase.md.noObey===1){
-        const r = document.getElementById('recognize_res');
-        r.textContent = "No valorable (no obedece)";
-        r.className = "text-gray-600 italic";
-      } else {
-        document.getElementById('recognize_res').textContent = "";
-        document.getElementById('recognize_res').className = "text-sm";
-      }
-      break;
-    case 'recognize':
-      if(currentCase.md.noObey===1){
-        const r = document.getElementById('recognize_res');
-        r.textContent = "No valorable (no obedece)";
-        r.className = "text-gray-600 italic";
-      } else {
-        setItemResult('recognize_res',"Sí","No", currentCase.md.recNo===1 ? false : true);
-      }
-      break;
+  function resultLabel(value){
+    if(value === null) return '<span class="text-slate-500 italic">No valorable</span>';
+    return value ? '<span class="text-emerald-700 font-semibold">Sí</span>' : '<span class="text-rose-700 font-semibold">No</span>';
   }
-}
 
-/* ==========================
-   Eventos UI
-   ========================== */
-document.getElementById("btnMovilizar").addEventListener("click",()=>{
-  document.getElementById("btnMovilizar").classList.add("hidden");
-  document.getElementById("cronometro").classList.remove("hidden");
-  document.getElementById("emojiPanel").classList.remove("hidden");
-  iniciarCronometro();
-});
+  function renderMdItems(){
+    $('mdItems').innerHTML = MD_ITEMS.map(item => `
+      <div class="card p-4">
+        <div class="font-semibold text-slate-900">${item.label}</div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button class="btn btn-secondary !min-h-[42px] !py-2 !px-4 md-answer" data-item="${item.id}">Valorar</button>
+          <div id="md-res-${item.id}" class="text-sm font-semibold text-slate-700"></div>
+        </div>
+      </div>
+    `).join('');
 
-document.getElementById("btnClinica").addEventListener("click",(e)=>{
-  const desc = currentCase.clinicaTexto;
-  registrarAccionHTML(desc,"descClinica",e.currentTarget);
-});
-document.getElementById("btnConstantes").addEventListener("click",(e)=>{
-  const desc = currentCase.constantes;
-  registrarAccionHTML(desc,"descConstantes",e.currentTarget);
-});
-document.getElementById("btnAntecedentes").addEventListener("click",(e)=>{
-  const desc = currentCase.antecedentes;
-  registrarAccionHTML(desc,"descAntecedentes",e.currentTarget);
-});
-document.getElementById("btnHora").addEventListener("click",(e)=>{
-  const desc = currentCase.hora;
-  registrarAccionHTML(desc,"descHora",e.currentTarget);
-});
-
-// Ítems MD
-document.querySelectorAll("[data-check]").forEach(btn=>{
-  btn.addEventListener("click",()=> handleCheck(btn.getAttribute("data-check")));
-});
-
-// Validación MADRID DIRECT (informativa)
-document.getElementById("btnValidarMadrid").addEventListener("click",()=>{
-  const valStr = document.getElementById("inputMadrid").value;
-  const msg = document.getElementById("msgMadrid");
-  if(valStr===""){
-    msg.textContent = "Introduce una puntuación.";
-    msg.className = "text-red-700 font-semibold text-lg";
-    return;
+    document.querySelectorAll('.md-answer').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.item;
+        const result = answerFor(id, state.currentCase);
+        state.mdAnswers[id] = result;
+        $(`md-res-${id}`).innerHTML = resultLabel(result);
+      });
+    });
   }
-  const val = Number(valStr);
-  if(val === correctMadrid){
-    msg.textContent = `Cálculo correcto ✔`;
-    msg.className = "text-green-700 font-semibold text-lg";
-  } else {
-    msg.textContent = `Incorrecto ✘. Revisa tu exploración.`;
-    msg.className = "text-red-700 font-semibold text-lg";
+
+  function validateScore(){
+    if(state.actionsDone.size < 4) return;
+    const raw = $('scoreInput').value.trim();
+    if(raw === ''){
+      $('scoreFeedback').textContent = 'Introduce una puntuación.';
+      $('scoreFeedback').className = 'text-sm font-semibold text-rose-700';
+      return;
+    }
+    const expected = calcMadrid(state.currentCase);
+    const val = Number(raw);
+    if(val === expected){
+      state.scoreValidated = true;
+      $('scoreStatus').textContent = `Correcta (${expected})`;
+      $('scoreFeedback').textContent = 'Cálculo correcto.';
+      $('scoreFeedback').className = 'text-sm font-semibold text-emerald-700';
+      setPhase('decision');
+    } else {
+      state.scoreValidated = false;
+      $('scoreStatus').textContent = 'Incorrecta';
+      $('scoreFeedback').textContent = 'Puntuación incorrecta. Revisa la exploración y la integración de la escala.';
+      $('scoreFeedback').className = 'text-sm font-semibold text-rose-700';
+    }
   }
-});
 
-/* ==========================
-   Botones de decisión: Cumple / NO cumple
-   ========================== */
-function showGameOver(msg){
-  pararCronometro();
-  document.getElementById("goMsg").textContent = msg || "Has fallado en la decisión.";
-  document.getElementById("gameOverOverlay").style.display = "flex";
-}
-function showSuccess(){
-  pararCronometro();
-  document.getElementById("okMsg").textContent = "Tiempo total: " + document.getElementById("tiempo").textContent;
-  document.getElementById("successOverlay").style.display = "flex";
-}
-
-document.getElementById("btnCumple").addEventListener("click", ()=>{
-  if(currentCase.cumpleCodigo){
-    document.getElementById("btnAlerta").classList.remove("hidden");
-    document.getElementById("msgMadrid").textContent = "Ahora gestiona la Alerta hospitalaria para finalizar.";
-    document.getElementById("msgMadrid").className = "text-slate-700 text-sm";
-  } else {
-    showGameOver("El caso NO cumplía criterios. Decisión incorrecta.");
+  function takeDecision(value){
+    if(!state.scoreValidated){
+      $('decisionFeedback').textContent = 'Primero valida la puntuación total.';
+      $('decisionFeedback').className = 'mt-3 text-sm font-semibold text-rose-700';
+      return;
+    }
+    const correct = value === state.currentCase.expectedCode;
+    state.decisionTaken = true;
+    if(correct && value){
+      $('decisionStatus').textContent = 'Prealerta pendiente';
+      $('decisionFeedback').textContent = 'Decisión correcta. Completa la alerta hospitalaria para finalizar.';
+      $('decisionFeedback').className = 'mt-3 text-sm font-semibold text-emerald-700';
+      $('alertWrap').classList.remove('hidden-x');
+      return;
+    }
+    if(correct && !value){
+      $('decisionStatus').textContent = 'Correcta';
+      finishCase(true, false);
+      return;
+    }
+    $('decisionStatus').textContent = 'Incorrecta';
+    finishCase(false, value);
   }
-});
 
-document.getElementById("btnNoCumple").addEventListener("click", ()=>{
-  if(!currentCase.cumpleCodigo){
-    showSuccess();
-  } else {
-    showGameOver("El caso SÍ cumplía criterios. Decisión incorrecta.");
+  function completeAlert(){
+    if(!state.currentCase.expectedCode) return;
+    addPenalty(90);
+    state.alertDone = true;
+    $('decisionStatus').textContent = 'Correcta';
+    finishCase(true, true);
   }
-});
 
-/* ==========================
-   Gestionar Alerta hospitalaria
-   ========================== */
-document.getElementById("btnAlerta").addEventListener("click",()=>{
-  segundos += 300; actualizarTiempo(); flashTiempo();
-  if(currentCase.cumpleCodigo){
-    document.getElementById("destinoHospital").classList.remove("hidden");
-    document.getElementById("textoDestino").textContent = `Destino: ${currentCase.destino}`;
+  function finishCase(correct, choseCode){
+    stopTimer();
+    setPhase('review');
+    const c = state.currentCase;
+    const score = calcMadrid(c);
+    const badge = $('overlayBadge');
+    const title = $('overlayTitle');
+    const subtitle = $('overlaySubtitle');
+
+    if(correct){
+      badge.className = 'badge bg-emerald-50 text-emerald-800 border border-emerald-200';
+      badge.textContent = 'Resolución correcta';
+      title.textContent = 'Caso resuelto';
+      subtitle.textContent = c.expectedCode
+        ? `Se consideró candidato a Código Ictus y se completó la alerta hospitalaria. Tiempo total ${formatTime(state.seconds)}.`
+        : `La decisión final fue no activar Código Ictus. Tiempo total ${formatTime(state.seconds)}.`;
+    } else {
+      badge.className = 'badge bg-rose-50 text-rose-800 border border-rose-200';
+      badge.textContent = 'Decisión incorrecta';
+      title.textContent = 'Revisión del caso';
+      subtitle.textContent = choseCode
+        ? 'Se activó Código Ictus cuando el caso no debía cerrarse así en esta fase.'
+        : 'No se activó Código Ictus en un caso que mantenía criterios clínicos de sospecha.';
+    }
+
+    $('expectedBlock').innerHTML = `
+      <div><strong>Madrid Direct esperada:</strong> ${score}</div>
+      <div class="mt-2"><strong>Código Ictus:</strong> ${c.expectedCode ? 'Sí' : 'No'}</div>
+      <div class="mt-2"><strong>Destino / conducta:</strong> ${c.destination}</div>
+    `;
+    $('territoryBlock').textContent = c.territory;
+    $('keyPoints').innerHTML = c.keyPoints.map(p => `<li>• ${p}</li>`).join('');
+    $('teachingBlock').textContent = c.teaching;
+    $('overlay').classList.add('show');
   }
-  showSuccess();
-});
 
-/* Reinicios */
-document.getElementById("btnReiniciarGO").addEventListener("click",()=> iniciarNuevoCaso());
-document.getElementById("btnReiniciarOK").addEventListener("click",()=> iniciarNuevoCaso());
+  function bindEvents(){
+    $('caseBtn1').addEventListener('click', ()=> loadCase(0));
+    $('caseBtn2').addEventListener('click', ()=> loadCase(1));
+    $('caseBtn3').addEventListener('click', ()=> loadCase(2));
+    $('caseBtn4').addEventListener('click', ()=> loadCase(3));
+    $('startBtn').addEventListener('click', startCase);
+    $('resetBtn').addEventListener('click', ()=> resetCase(true));
+    $('validateBtn').addEventListener('click', validateScore);
+    $('yesBtn').addEventListener('click', ()=> takeDecision(true));
+    $('noBtn').addEventListener('click', ()=> takeDecision(false));
+    $('alertBtn').addEventListener('click', completeAlert);
+    $('retryBtn').addEventListener('click', ()=> { $('overlay').classList.remove('show'); resetCase(true); });
+    $('closeBtn').addEventListener('click', ()=> $('overlay').classList.remove('show'));
+  }
 
-
-// POBLAR SELECTOR DE CASOS
-window.addEventListener('DOMContentLoaded', ()=>{
- const sel=document.getElementById('selectorCasos');
- casos.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.text='Caso #'+(i+1);sel.appendChild(o);});
- iniciarNuevoCaso();
-});
-// INICIAR CASO DESDE DESPLEGABLE
-function iniciarNuevoCaso(){
- resetUI();
- const idx=parseInt(document.getElementById('selectorCasos').value||0);
- currentCase=casos[idx];
- document.getElementById('textoCaso').textContent=currentCase.aviso(currentCase.edad);
- correctMadrid=calcMadridFromCase(currentCase);
-}
-
-
-// BOTONES DE CASOS DIRECTOS
-['1','2','3','4'].forEach(n=>{
- document.getElementById('btnCaso'+n).addEventListener('click',()=>{
-   resetUI();
-   currentCase=casos[parseInt(n)-1];
-   document.getElementById('textoCaso').textContent=currentCase.aviso(currentCase.edad);
-   correctMadrid=calcMadridFromCase(currentCase);
-  });
-});
-
-/* Inicio */
-window.addEventListener("DOMContentLoaded",()=>{ iniciarNuevoCaso(); });
+  bindEvents();
+  loadCase(0);
+})();
 </script>
 </body>
 </html>
